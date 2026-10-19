@@ -1,6 +1,9 @@
   // 主界面下方的定时抽屉：设置/取消定时，倒计时由本机服务执行。
-  // 指定时刻使用自绘双滚轮，并明确显示“今天/明天”，跨天顺延不再悄悄发生。
+  // 倒计时：预设档位 + “+30 分钟”点按/长按加速；指定时刻：自绘双滚轮并标注今天/明天。
   const TIMER_WHEEL_ITEM = 32;
+  const TIMER_STEP_MINUTES = 30;
+  const TIMER_MIN_MINUTES = 30;
+  const TIMER_MAX_MINUTES = 23 * 60 + 30;
 
   class TimerPanel {
     constructor({ signal, getBridge, isLive }) {
@@ -16,6 +19,9 @@
       this.startButton = requiredElement('timerStart');
       this.cancelButton = requiredElement('timerCancel');
       this.durations = requiredElement('timerDurations');
+      this.stepButton = requiredElement('timerStep');
+      this.preview = requiredElement('timerPreview');
+      this.previewWhen = requiredElement('timerPreviewWhen');
       this.clockRow = requiredElement('timerClock');
       this.timeButton = requiredElement('timerTimeButton');
       this.timeValue = requiredElement('timerTimeValue');
@@ -26,17 +32,12 @@
       this.minuteWheel = requiredElement('timerMinuteWheel');
       this.timeDone = requiredElement('timerTimeDone');
       this.announce = requiredElement('timerAnnounce');
-      this.popoverTitle = requiredElement('timerPopoverTitle');
       this.actionButtons = [...this.root.querySelectorAll('[data-action]')];
       this.modeButtons = [...this.root.querySelectorAll('[data-mode]')];
       this.chips = [...this.durations.querySelectorAll('.timer-chip[data-minutes]')];
-      this.customChip = this.durations.querySelector('[data-custom]');
       this.action = 'off';
       this.mode = 'after';
       this.minutes = 60;
-      this.custom = false;
-      this.customMinutes = 60;
-      this.picker = 'clock';
       const defaultTime = new Date(Date.now() + 60 * 60000);
       this.atHour = defaultTime.getHours();
       this.atMinute = defaultTime.getMinutes();
@@ -48,11 +49,16 @@
       this.busy = false;
       this.notice = null;
       this.wheelTimer = null;
+      this.stepDelay = null;
+      this.stepRepeat = null;
+      this.stepAccel = null;
+      this.stepStarted = false;
       this.buildWheels();
       this.bind();
       this.tick = setInterval(() => {
         this.renderState();
-        if (this.mode === 'at' && !this.timer) this.updateTimeDisplay();
+        this.renderPreview();
+        if (this.mode === 'at') this.updateClockDisplay();
       }, 1000);
       this.render();
     }
@@ -100,23 +106,11 @@
     }
 
     scrollWheelTo(wheel, value) {
-      // 点击某一行时先立即提交，再平滑滚动；避免点完马上“完成”导致选择丢失。
-      if (this.picker === 'duration') {
-        const hours = wheel === this.hourWheel ? value : Math.floor(this.minutes / 60);
-        const minutes = wheel === this.minuteWheel ? value : this.minutes % 60;
-        this.customMinutes = hours * 60 + minutes;
-        this.minutes = this.customMinutes;
-        this.custom = true;
-        this.updateDurationDisplay();
-        this.paintDuration();
-      } else if (wheel === this.hourWheel) {
-        this.atHour = value;
-        this.updateTimeDisplay();
-      } else {
-        this.atMinute = value;
-        this.updateTimeDisplay();
-      }
+      // 先立即提交，再平滑滚动；避免点完马上“完成”时选择丢失。
+      if (wheel === this.hourWheel) this.atHour = value;
+      else this.atMinute = value;
       this.paintWheelSelection();
+      this.updateClockDisplay();
       wheel.scrollTo({ top: value * TIMER_WHEEL_ITEM, behavior: 'smooth' });
       clearTimeout(this.wheelTimer);
       this.wheelTimer = setTimeout(() => this.updateFromWheels(), 140);
@@ -124,28 +118,14 @@
 
     updateFromWheels() {
       if (this.popover.hidden) return;
-      const hour = clamp(Math.round(this.hourWheel.scrollTop / TIMER_WHEEL_ITEM), 0, 23);
-      const minute = clamp(Math.round(this.minuteWheel.scrollTop / TIMER_WHEEL_ITEM), 0, 59);
-      if (this.picker === 'duration') {
-        this.customMinutes = hour * 60 + minute;
-        this.minutes = this.customMinutes;
-        this.custom = true;
-        this.paintWheelSelection();
-        this.updateDurationDisplay();
-        this.paintDuration();
-        return;
-      }
-      this.atHour = hour;
-      this.atMinute = minute;
+      this.atHour = clamp(Math.round(this.hourWheel.scrollTop / TIMER_WHEEL_ITEM), 0, 23);
+      this.atMinute = clamp(Math.round(this.minuteWheel.scrollTop / TIMER_WHEEL_ITEM), 0, 59);
       this.paintWheelSelection();
-      this.updateTimeDisplay();
+      this.updateClockDisplay();
     }
 
     paintWheelSelection() {
-      const [hour, minute] = this.picker === 'duration'
-        ? [Math.floor(this.minutes / 60), this.minutes % 60]
-        : [this.atHour, this.atMinute];
-      const groups = [[this.hourWheel, hour], [this.minuteWheel, minute]];
+      const groups = [[this.hourWheel, this.atHour], [this.minuteWheel, this.atMinute]];
       for (const [wheel, value] of groups) {
         for (const item of wheel.querySelectorAll('.timer-wheel-item')) {
           const selected = Number(item.dataset.value) === value;
@@ -156,43 +136,32 @@
     }
 
     syncWheels() {
-      const [hour, minute] = this.picker === 'duration'
-        ? [Math.floor(this.minutes / 60), this.minutes % 60]
-        : [this.atHour, this.atMinute];
-      this.hourWheel.scrollTop = hour * TIMER_WHEEL_ITEM;
-      this.minuteWheel.scrollTop = minute * TIMER_WHEEL_ITEM;
+      this.hourWheel.scrollTop = this.atHour * TIMER_WHEEL_ITEM;
+      this.minuteWheel.scrollTop = this.atMinute * TIMER_WHEEL_ITEM;
       this.paintWheelSelection();
     }
 
-    openPopover(picker = 'clock') {
-      if (picker === 'clock' && this.timeButton.disabled) return;
-      if (picker === 'duration' && !this.available()) return;
-      this.picker = picker;
-      this.popoverTitle.textContent = picker === 'duration' ? `多久后 · ${this.durationLabel(this.minutes)}` : '到点时刻';
-      this.popoverDay.hidden = picker === 'duration';
+    openPopover() {
+      if (this.popover.hidden === false || this.timeButton.disabled) return;
       this.popover.hidden = false;
-      this.timeButton.setAttribute('aria-expanded', String(picker === 'clock'));
-      if (this.customChip) this.customChip.setAttribute('aria-expanded', String(picker === 'duration'));
+      this.timeButton.setAttribute('aria-expanded', 'true');
       this.syncWheels();
-      if (picker === 'duration') this.updateDurationDisplay();
-      else this.updateTimeDisplay();
+      this.updateClockDisplay();
     }
 
     closePopover() {
       if (this.popover.hidden) return;
-      // 关闭前提交当前滚轮位置，避免滚动事件还没结束就关闭。
       this.updateFromWheels();
       this.popover.hidden = true;
       this.timeButton.setAttribute('aria-expanded', 'false');
-      if (this.customChip) this.customChip.setAttribute('aria-expanded', 'false');
     }
 
     togglePopover() {
-      if (this.popover.hidden === false && this.picker === 'clock') this.closePopover();
-      else this.openPopover('clock');
+      if (this.popover.hidden === false) this.closePopover();
+      else this.openPopover();
     }
 
-    // ---------------------------------------------------------------- 跨天计算
+    // ---------------------------------------------------------------- 时间计算
     clockLabel(hour, minute) {
       return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
     }
@@ -215,17 +184,9 @@
       };
     }
 
-    durationLabel(minutes) {
-      const total = Math.max(0, Math.round(minutes));
-      if (total >= 60 && total % 60 === 0) return `${total / 60} 小时`;
-      const hours = Math.floor(total / 60);
-      const rest = total % 60;
-      return hours ? `${hours} 小时 ${rest} 分` : `${rest} 分钟`;
-    }
-
     afterInfo() {
-      const due = new Date(Date.now() + this.minutes * 60000);
       const now = new Date();
+      const due = new Date(now.getTime() + this.minutes * 60000);
       const tomorrow = due.getFullYear() !== now.getFullYear()
         || due.getMonth() !== now.getMonth()
         || due.getDate() !== now.getDate();
@@ -237,43 +198,15 @@
       };
     }
 
-    updateDurationDisplay() {
-      this.popoverTitle.textContent = `多久后 · ${this.durationLabel(this.minutes)}`;
-      this.popoverDay.hidden = true;
-      this.applyHint();
-    }
-
-    paintDuration() {
-      for (const chip of this.chips) {
-        chip.classList.toggle('is-active', !this.custom && Number(chip.dataset.minutes) === this.minutes);
-      }
-      if (this.customChip) {
-        this.customChip.classList.toggle('is-active', this.custom);
-        this.customChip.textContent = this.custom ? this.durationLabel(this.minutes) : '自定义';
-      }
-      const tooShort = this.mode === 'after' && this.custom && this.minutes < 1;
-      this.startButton.disabled = !this.available() || this.busy || tooShort;
-    }
-
-    chooseCustom() {
-      if (!this.available()) return;
-      const initial = this.custom ? this.customMinutes : this.minutes;
-      this.custom = true;
-      this.customMinutes = initial;
-      this.minutes = initial;
-      this.openPopover('duration');
-      this.paintDuration();
-    }
-
     syncTimeInput() {
       const date = new Date(Date.now() + this.minutes * 60000);
       this.atHour = date.getHours();
       this.atMinute = date.getMinutes();
       if (!this.popover.hidden) this.syncWheels();
-      this.updateTimeDisplay();
+      this.updateClockDisplay();
     }
 
-    updateTimeDisplay() {
+    updateClockDisplay() {
       const info = this.targetInfo();
       this.timeValue.textContent = info.timeLabel;
       this.dayLabel.textContent = info.dayLabel;
@@ -294,6 +227,15 @@
         clock: this.clockLabel(due.getHours(), due.getMinutes()),
         action: timer.action,
       };
+    }
+
+    formatDuration(minutes) {
+      const total = Math.max(0, Math.round(minutes));
+      const hours = Math.floor(total / 60);
+      const rest = total % 60;
+      if (hours && rest) return `${hours} 小时 ${rest} 分`;
+      if (hours) return `${hours} 小时`;
+      return `${rest} 分钟`;
     }
 
     // ---------------------------------------------------------------- 状态
@@ -319,7 +261,7 @@
       this.root.classList.toggle('is-open', open);
       this.handle.setAttribute('aria-expanded', String(open));
       this.panel.hidden = !open;
-      if (open && this.mode === 'at') this.updateTimeDisplay();
+      if (open && this.mode === 'at') this.updateClockDisplay();
       if (!open) this.closePopover();
     }
 
@@ -339,10 +281,53 @@
 
     chooseMinutes(minutes) {
       if (!Number.isFinite(minutes)) return;
-      this.custom = false;
-      this.customMinutes = null;
-      this.minutes = minutes;
+      this.minutes = clamp(minutes, TIMER_MIN_MINUTES, TIMER_MAX_MINUTES);
       this.render();
+    }
+
+    increaseDuration() {
+      if (!this.available() || this.mode !== 'after') return;
+      const next = Math.min(TIMER_MAX_MINUTES, this.minutes + TIMER_STEP_MINUTES);
+      if (next === this.minutes) return;
+      this.minutes = next;
+      this.render();
+    }
+
+    clearStepTimers() {
+      clearTimeout(this.stepDelay);
+      clearTimeout(this.stepAccel);
+      clearInterval(this.stepRepeat);
+      this.stepDelay = null;
+      this.stepAccel = null;
+      this.stepRepeat = null;
+    }
+
+    beginStepHold(event) {
+      if (!this.available() || this.mode !== 'after') return;
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      this.clearStepTimers();
+      this.stepStarted = true;
+      this.increaseDuration();
+      this.stepDelay = setTimeout(() => {
+        this.stepRepeat = setInterval(() => this.increaseDuration(), 180);
+        this.stepAccel = setTimeout(() => {
+          clearInterval(this.stepRepeat);
+          this.stepRepeat = setInterval(() => this.increaseDuration(), 80);
+        }, 1200);
+      }, 420);
+    }
+
+    stopStepHold() {
+      this.clearStepTimers();
+      if (!this.stepStarted) return;
+      this.stepStarted = false;
+      const info = this.afterInfo();
+      this.say(`已设为 ${this.formatDuration(this.minutes)}，预计 ${info.dayLabel} ${info.clock} ${this.actionLabel(this.action)}`);
+    }
+
+    announceDuration() {
+      const info = this.afterInfo();
+      this.say(`已设为 ${this.formatDuration(this.minutes)}，预计 ${info.dayLabel} ${info.clock} ${this.actionLabel(this.action)}`);
     }
 
     async submit() {
@@ -352,7 +337,7 @@
       const afterInfo = after ? this.afterInfo() : null;
       const due = afterInfo ? afterInfo.due : info.due;
       const label = after
-        ? `${this.durationLabel(this.minutes)}后${this.actionLabel(this.action)}`
+        ? `${this.formatDuration(this.minutes)}后${this.actionLabel(this.action)}`
         : `${info.dayLabel} ${info.timeLabel} ${this.actionLabel(this.action)}`;
       this.busy = true;
       this.render();
@@ -408,6 +393,22 @@
       this.announce.textContent = text;
     }
 
+    previewText() {
+      if (!this.available()) return '';
+      if (this.mode === 'at') {
+        const info = this.targetInfo();
+        return `${info.dayLabel} ${info.timeLabel} ${this.actionLabel(this.action)}`;
+      }
+      const info = this.afterInfo();
+      return `${this.formatDuration(this.minutes)}后 · ${info.dayLabel} ${info.clock} ${this.actionLabel(this.action)}`;
+    }
+
+    renderPreview() {
+      const text = this.previewText();
+      this.preview.hidden = !text;
+      if (text) this.previewWhen.textContent = text;
+    }
+
     applyHint(info = this.targetInfo()) {
       if (this.timer && this.timer.error) {
         this.hint.textContent = this.timer.failed ? this.timer.error : `${this.timer.error}（将自动重试）`;
@@ -426,12 +427,7 @@
             : `将在明天 ${info.timeLabel} 执行。`)
           : `将在今天 ${info.timeLabel} 执行。`;
       } else {
-        if (this.custom && this.minutes < 1) {
-          this.hint.textContent = '自定义时长至少 1 分钟。';
-          return;
-        }
-        const after = this.afterInfo();
-        this.hint.textContent = `将在 ${this.durationLabel(after.minutes)}后（${after.dayLabel} ${after.clock}）执行，程序保持运行即可。`;
+        this.hint.textContent = '点按「+30 分钟」延长，长按加速；重新选档位可重设。到点由本机服务执行，可最小化或悬浮。';
       }
     }
 
@@ -480,23 +476,19 @@
         button.classList.toggle('is-active', on);
         button.setAttribute('aria-pressed', String(on));
       }
-      for (const chip of this.chips) chip.classList.toggle('is-active', !this.custom && Number(chip.dataset.minutes) === this.minutes);
-      if (this.customChip) {
-        this.customChip.classList.toggle('is-active', this.custom);
-        this.customChip.textContent = this.custom ? this.durationLabel(this.minutes) : '自定义';
-      }
+      for (const chip of this.chips) chip.classList.toggle('is-active', Number(chip.dataset.minutes) === this.minutes);
       this.durations.hidden = this.mode !== 'after';
       this.clockRow.hidden = this.mode !== 'at';
       const available = this.available();
-      const tooShort = this.mode === 'after' && this.custom && this.minutes < 1;
-      this.startButton.disabled = !available || this.busy || tooShort;
-      if (this.customChip) this.customChip.disabled = !available;
+      this.startButton.disabled = !available || this.busy;
       this.timeButton.disabled = !available;
+      this.stepButton.disabled = !available || this.mode !== 'after' || this.minutes >= TIMER_MAX_MINUTES;
       this.cancelButton.hidden = !this.timer;
       this.cancelButton.disabled = this.busy;
       if (this.timeButton.disabled) this.closePopover();
       this.applyHint();
-      if (this.mode === 'at') this.updateTimeDisplay();
+      if (this.mode === 'at') this.updateClockDisplay();
+      this.renderPreview();
       this.renderState();
     }
 
@@ -529,7 +521,18 @@
       for (const button of this.actionButtons) listen(button, 'click', () => this.chooseAction(button.dataset.action));
       for (const button of this.modeButtons) listen(button, 'click', () => this.chooseMode(button.dataset.mode));
       for (const chip of this.chips) listen(chip, 'click', () => this.chooseMinutes(Number(chip.dataset.minutes)));
-      if (this.customChip) listen(this.customChip, 'click', () => this.chooseCustom());
+      listen(this.stepButton, 'pointerdown', event => this.beginStepHold(event));
+      listen(this.stepButton, 'pointerup', () => this.stopStepHold());
+      listen(this.stepButton, 'pointerleave', () => this.stopStepHold());
+      listen(this.stepButton, 'pointercancel', () => this.stopStepHold());
+      listen(this.stepButton, 'contextmenu', event => event.preventDefault());
+      listen(this.stepButton, 'click', event => {
+        if (event.detail === 0) {
+          this.increaseDuration();
+          this.announceDuration();
+        }
+      });
+      listen(document, 'pointerup', () => this.stopStepHold());
       listen(this.startButton, 'click', () => this.submit());
       listen(this.cancelButton, 'click', () => this.cancel());
     }
@@ -537,5 +540,6 @@
     dispose() {
       clearInterval(this.tick);
       clearTimeout(this.wheelTimer);
+      this.clearStepTimers();
     }
   }
