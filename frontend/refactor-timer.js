@@ -217,7 +217,7 @@
 
     durationLabel(minutes) {
       const total = Math.max(0, Math.round(minutes));
-      if (total % 60 === 0) return `${total / 60} 小时`;
+      if (total >= 60 && total % 60 === 0) return `${total / 60} 小时`;
       const hours = Math.floor(total / 60);
       const rest = total % 60;
       return hours ? `${hours} 小时 ${rest} 分` : `${rest} 分钟`;
