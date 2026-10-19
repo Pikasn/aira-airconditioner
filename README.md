@@ -5,16 +5,33 @@
 [![license](https://img.shields.io/github/license/Pikasn/aira-airconditioner)](LICENSE)
 [![platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4)](https://github.com/Pikasn/aira-airconditioner/releases)
 
-> **AIRA · 空调** 是一个 Windows 桌面空调遥控器，通过局域网直接控制**米家空调伴侣 2**（`lumi.acpartner.mcn02`），不经过云端。
+> **玩电脑的时候，空调遥控器又找不到了？**
 >
-> A Windows desktop remote for the Xiaomi Mijia Air Conditioner Companion 2, talking to the device directly over the local network.
+> 打游戏、写代码、追剧正到一半，不想起身找遥控器，也不想解锁手机、打开米家 App、等页面加载——
+> AIRA 把空调控制放到 Windows 桌面上：双击即开，圆环调温，模式、风速、扫风、定时都在手边，不经过云端。
+>
+> **Tired of hunting for the remote or reaching for your phone just to change the temperature?**
+> AIRA puts your air conditioner on the Windows desktop: dial control, modes, fan speed, swing and timers — all local, no cloud.
+
+支持 **米家空调伴侣 2**（`lumi.acpartner.mcn02`）· Windows 10/11
 
 ![主界面](docs/screenshots/main.png)
 
 ---
 
+## 为什么用它
+
+- **打游戏 / 写代码 / 追剧时不想切出去**：温控悬浮条或悬浮球可以置顶常驻，调温、开关不用离开当前窗口。
+- **手机在充电、不在手边**：不用解锁手机找米家 App，电脑上直接完成开关、调温和模式切换。
+- **睡前或出门前想设个定时**：底部「定时」条支持倒计时或指定时刻，到点自动关机/开机。
+- **只想瞄一眼现在多少度**：主界面、悬浮条、浮球都会显示设定温度与模式。
+- **在意隐私**：局域网直连空调伴侣，不经过米家云，也没有账号和遥测。
+
+例如：开黑正到关键局，忽然觉得热——低头看一眼常驻的悬浮球，滚轮滚两下就调好温度，不用切回桌面，也不用找手机。
+
 ## 目录
 
+- [为什么用它](#为什么用它)
 - [功能一览](#功能一览)
 - [界面与操作](#界面与操作)
 - [设备连接](#设备连接)
@@ -299,6 +316,8 @@ Copyright (C) 2026 Pikasn
 ## English summary
 
 AIRA is a Windows desktop remote for the Xiaomi Mijia Air Conditioner Companion 2 (`lumi.acpartner.mcn02`). It runs a local-only FastAPI service and a WebView2 UI, and talks to the device over the local network (miio/UDP) without any cloud dependency.
+
+Tired of hunting for the remote while gaming or coding, or unlocking your phone to open the Mi Home app just to change the temperature? AIRA keeps the controls on your desktop, with a floating bar/ball that can stay on top of your work.
 
 Highlights: temperature dial (16–30°C), five modes, four fan speeds, vertical swing, one-shot timers (countdown or clock time, execute even when the window is hidden), three window presentations (main window, floating bar, floating ball), native acrylic window chrome, tray integration, reconnection handling, and a layered airflow visualization that degrades gracefully without GPU support.
 
