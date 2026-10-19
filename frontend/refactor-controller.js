@@ -20,7 +20,7 @@
         dial: requiredElement('dial'), progress: requiredElement('prog'),
         knob: requiredElement('knob'), readout: requiredElement('bigTemp'),
         canvas: requiredElement('airCanvas'), louver: requiredElement('louver'),
-        mode: requiredElement('modeControl'), direction: requiredElement('directionControl'),
+        mode: requiredElement('modeControl'), speed: requiredElement('speedControl'), direction: requiredElement('directionControl'),
         climate: requiredElement('climateReading'), room: requiredElement('roomTemperature'),
         moisture: requiredElement('roomHumidity'),
         machine: document.querySelector('.machine'), outlet: document.querySelector('.machine-bottom')
@@ -145,11 +145,10 @@
           svg.classList.toggle('speed-bars', key === 'speed' && value !== 'auto');
         }
       }
-      if (!previous || state.power !== previous.power || state.direction !== previous.direction) {
-        this.elements.mode.classList.toggle('active', state.power);
-        this.elements.direction.classList.toggle('active', state.power && state.direction === 'swing');
-        this.elements.direction.setAttribute('aria-pressed', String(state.direction === 'swing'));
-      }
+      this.elements.mode.classList.toggle('active', state.power);
+      this.elements.speed.classList.toggle('active', state.power);
+      this.elements.direction.classList.toggle('active', state.power && state.direction === 'swing');
+      this.elements.direction.setAttribute('aria-pressed', String(state.power && state.direction === 'swing'));
       const unknownTarget = this.isLive && (!this.online || !Number.isFinite(this.state.temp));
       this.dial.render({ ...state, power: state.power && !unknownTarget });
       this.elements.power.disabled = this.isLive && !this.online;

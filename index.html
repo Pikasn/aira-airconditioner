@@ -59,6 +59,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
   radial-gradient(96vw 74vw at 34% 106%, rgba(162,220,208,.54), transparent 64%),
   radial-gradient(76vw 60vw at 90% 94%, rgba(122,196,194,.46), transparent 62%)}
 body.mode-cool{--accent:#2fa3d4}
+body.mode-cool .tint.cool{opacity:.15}
+body.mode-cool .room-atmosphere::before{background:radial-gradient(ellipse at 0 6%,rgba(214,230,238,.34),transparent 33%),radial-gradient(ellipse at 100% 94%,rgba(205,223,233,.28),transparent 35%)}
 body.mode-heat{--accent:#ef8f3c}
 body.mode-dry {--accent:#7b93b6}
 body.mode-fan {--accent:#45a67f}
@@ -82,7 +84,8 @@ body.mode-cool .tint.cool,body.mode-heat .tint.heat,body.mode-dry .tint.dry,body
 .control-button svg{width:clamp(15px,calc(18 * var(--u)),40px);height:clamp(15px,calc(18 * var(--u)),40px);fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
 .control-button:hover{color:var(--accent);background:rgba(217,235,243,.26)}
 .control-button:active{transform:scale(.9)}
-.control-button.active{color:var(--accent)}
+.control-button.active{color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,#fff);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 20%,transparent),0 4px 14px -12px var(--accent)}
+body.is-off .control-button.active{background:transparent;box-shadow:none;color:#92a5ae}
 .speed-bars{stroke-width:2!important}
 .dial-box{position:absolute;right:clamp(44px,calc(63 * var(--u)),154px);top:calc((var(--face-height) - var(--dial-size)) / 2 - 3px);width:var(--dial-size);height:var(--dial-size);z-index:3}
 .dial{position:relative;display:block;width:100%;height:100%;overflow:visible;touch-action:none;cursor:pointer;outline:none}
@@ -2123,7 +2126,7 @@ button:disabled{cursor:default;opacity:.45}
         dial: requiredElement('dial'), progress: requiredElement('prog'),
         knob: requiredElement('knob'), readout: requiredElement('bigTemp'),
         canvas: requiredElement('airCanvas'), louver: requiredElement('louver'),
-        mode: requiredElement('modeControl'), direction: requiredElement('directionControl'),
+        mode: requiredElement('modeControl'), speed: requiredElement('speedControl'), direction: requiredElement('directionControl'),
         climate: requiredElement('climateReading'), room: requiredElement('roomTemperature'),
         moisture: requiredElement('roomHumidity'),
         machine: document.querySelector('.machine'), outlet: document.querySelector('.machine-bottom')
@@ -2248,11 +2251,10 @@ button:disabled{cursor:default;opacity:.45}
           svg.classList.toggle('speed-bars', key === 'speed' && value !== 'auto');
         }
       }
-      if (!previous || state.power !== previous.power || state.direction !== previous.direction) {
-        this.elements.mode.classList.toggle('active', state.power);
-        this.elements.direction.classList.toggle('active', state.power && state.direction === 'swing');
-        this.elements.direction.setAttribute('aria-pressed', String(state.direction === 'swing'));
-      }
+      this.elements.mode.classList.toggle('active', state.power);
+      this.elements.speed.classList.toggle('active', state.power);
+      this.elements.direction.classList.toggle('active', state.power && state.direction === 'swing');
+      this.elements.direction.setAttribute('aria-pressed', String(state.power && state.direction === 'swing'));
       const unknownTarget = this.isLive && (!this.online || !Number.isFinite(this.state.temp));
       this.dial.render({ ...state, power: state.power && !unknownTarget });
       this.elements.power.disabled = this.isLive && !this.online;
