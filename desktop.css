@@ -1,0 +1,33 @@
+/* 原生宿主的背景由 Windows 合成；浏览器单独打开时保留普通页面。 */
+html.desktop,html.desktop body{background:transparent!important}
+html.desktop .bg-base{display:none}
+html.desktop .tint{display:block}
+html.desktop body.mode-cool .tint.cool,html.desktop body.mode-heat .tint.heat,html.desktop body.mode-dry .tint.dry,html.desktop body.mode-fan .tint.fan,html.desktop body.mode-auto .tint.auto{opacity:calc(.34 + var(--thermal-level,.3) * .18)}
+html.presentation-compact .room-atmosphere,html.presentation-bubble .room-atmosphere,html.presentation-compact .tint,html.presentation-bubble .tint{display:none!important}
+html.desktop .shell{--chrome-height:44px}
+html.desktop body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(242,246,249,.42)}
+html.desktop body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:90;border:1px solid rgba(255,255,255,.5);border-radius:9px;box-shadow:inset 0 1px rgba(255,255,255,.25)}
+html.desktop.is-maximized body::after{border-radius:0}
+html.desktop body:has(.connect-card){padding-top:64px}
+html.desktop body:has(.connect-card)::before{background:rgba(244,247,249,.66)}
+html.desktop body:has(.connect-card)::after{border-color:#ffffff38;box-shadow:none}
+.window-chrome{position:fixed;inset:0 0 auto;height:44px;z-index:100;display:flex;justify-content:flex-end;align-items:center;padding:6px 9px;gap:2px;user-select:none;touch-action:none}
+.window-chrome button{display:grid;place-items:center;width:34px;height:30px;padding:0;border:0;border-radius:8px;background:transparent;color:rgba(53,69,80,.64);cursor:default;transition:background .15s,color .15s}
+.window-chrome button:hover{background:rgba(255,255,255,.47);color:#2f4652}
+.window-chrome button:active{background:rgba(255,255,255,.7)}
+.window-chrome button:focus-visible{outline:2px solid #54a2c1;outline-offset:-3px}
+.window-chrome button[data-action=close]:hover{background:rgba(228,89,87,.85);color:#fff}
+.window-chrome svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.window-chrome .restore-icon{display:none}
+.window-resize{position:fixed;z-index:110;touch-action:none}
+.resize-left,.resize-right{top:12px;bottom:12px;width:6px;cursor:ew-resize}
+.resize-left{left:0}.resize-right{right:0}
+.resize-top,.resize-bottom{left:12px;right:12px;height:6px;cursor:ns-resize}
+.resize-top{top:0}.resize-bottom{bottom:0}
+.resize-top-left,.resize-top-right,.resize-bottom-left,.resize-bottom-right{width:12px;height:12px}
+.resize-top-left{top:0;left:0;cursor:nwse-resize}.resize-top-right{top:0;right:0;cursor:nesw-resize}
+.resize-bottom-left{bottom:0;left:0;cursor:nesw-resize}.resize-bottom-right{bottom:0;right:0;cursor:nwse-resize}
+html.is-maximized .window-resize{display:none}
+html.is-maximized .window-chrome .maximize-icon{display:none}
+html.is-maximized .window-chrome .restore-icon{display:block}
+@media(prefers-reduced-motion:reduce){.window-chrome button{transition:none}}

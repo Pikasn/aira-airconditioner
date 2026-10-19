@@ -1,0 +1,24 @@
+# Python / 虚拟环境
+.venv/
+.build-venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+
+# 本机运行数据：连接信息、日志、窗口状态、定时设置，绝不提交
+.local/
+*.log
+
+# 构建产物
+dist/
+build/
+
+# 发布包
+*.zip
+
+# 编辑器与系统文件
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

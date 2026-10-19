@@ -1,0 +1,1957 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="color-scheme" content="light"/>
+<meta name="theme-color" content="#f1f5f7"/>
+<title>空调</title>
+<link rel="icon" href="favicon.ico"/>
+<script>if(window.chrome?.webview)document.documentElement.classList.add('desktop');</script>
+<link rel="stylesheet" href="/desktop.css"/>
+<link rel="stylesheet" href="/floating.css"/>
+<script src="/desktop.js" defer></script>
+<style>
+@font-face{font-family:"Inter Variable";src:url("assets/inter.woff2") format("woff2");font-style:normal;font-weight:100 900;font-display:swap}
+:root{
+  --ink:#23323a;
+  --accent:#2fa3d4;
+  --font-cn:"Inter Variable","Noto Sans SC Variable",-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+  --font-num:"Inter Variable",-apple-system,"Segoe UI",sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--font-cn);color:var(--ink);background:#f1f5f7;overflow-x:hidden;letter-spacing:-.01em}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;border:0;background:none;color:inherit}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.dial:focus-visible{outline:none}
+.dial:focus-visible .track{stroke:color-mix(in srgb,var(--accent) 42%,transparent);stroke-width:5}
+::selection{background:color-mix(in srgb, var(--accent) 26%, transparent)}
+
+/* ---------- 背景层 ---------- */
+.bg-base{position:fixed;inset:0;z-index:-4;background:#f1f5f7}
+.tint{position:fixed;inset:-6%;z-index:-3;opacity:0;transition:opacity .8s var(--ease)}
+.tint.cool{background:
+  radial-gradient(90vw 72vw at 6% 0%, rgba(118,203,236,.64), transparent 62%),
+  radial-gradient(84vw 66vw at 98% 4%, rgba(96,158,226,.54), transparent 62%),
+  radial-gradient(96vw 74vw at 34% 106%, rgba(165,224,240,.58), transparent 64%),
+  radial-gradient(76vw 60vw at 90% 94%, rgba(110,178,224,.50), transparent 62%)}
+.tint.heat{background:
+  radial-gradient(90vw 72vw at 6% 0%, rgba(255,191,132,.64), transparent 62%),
+  radial-gradient(84vw 66vw at 98% 4%, rgba(252,158,105,.55), transparent 62%),
+  radial-gradient(96vw 74vw at 34% 106%, rgba(255,214,158,.58), transparent 64%),
+  radial-gradient(76vw 60vw at 90% 94%, rgba(250,172,116,.50), transparent 62%)}
+.tint.dry{background:
+  radial-gradient(90vw 72vw at 6% 0%, rgba(152,176,214,.58), transparent 62%),
+  radial-gradient(84vw 66vw at 98% 4%, rgba(122,150,198,.52), transparent 62%),
+  radial-gradient(96vw 74vw at 34% 106%, rgba(182,196,224,.54), transparent 64%),
+  radial-gradient(76vw 60vw at 90% 94%, rgba(140,164,208,.46), transparent 62%)}
+.tint.fan{background:
+  radial-gradient(90vw 72vw at 6% 0%, rgba(142,214,186,.58), transparent 62%),
+  radial-gradient(84vw 66vw at 98% 4%, rgba(112,190,160,.52), transparent 62%),
+  radial-gradient(96vw 74vw at 34% 106%, rgba(172,224,198,.54), transparent 64%),
+  radial-gradient(76vw 60vw at 90% 94%, rgba(130,204,174,.46), transparent 62%)}
+.tint.auto{background:
+  radial-gradient(90vw 72vw at 6% 0%, rgba(132,206,200,.58), transparent 62%),
+  radial-gradient(84vw 66vw at 98% 4%, rgba(102,186,190,.52), transparent 62%),
+  radial-gradient(96vw 74vw at 34% 106%, rgba(162,220,208,.54), transparent 64%),
+  radial-gradient(76vw 60vw at 90% 94%, rgba(122,196,194,.46), transparent 62%)}
+body.mode-cool{--accent:#2fa3d4}
+body.mode-heat{--accent:#ef8f3c}
+body.mode-dry {--accent:#7b93b6}
+body.mode-fan {--accent:#45a67f}
+body.mode-auto{--accent:#389d97}
+body.mode-cool .tint.cool,body.mode-heat .tint.heat,body.mode-dry .tint.dry,body.mode-fan .tint.fan,body.mode-auto .tint.auto{opacity:.26}
+.shell{--chrome-height:0px;--scene-gutter:clamp(20px,5vw,80px);--u:min(calc((100vw - 2 * var(--scene-gutter)) / 980),calc((100dvh - var(--chrome-height) - 64px) / 360),2.45px);position:relative;width:100%;height:calc(100dvh - var(--chrome-height));margin:var(--chrome-height) auto 0;padding:clamp(16px,4vh,40px) var(--scene-gutter) clamp(28px,5vh,48px);display:grid;justify-items:center;align-items:start}
+.hero{width:calc(980 * var(--u));max-width:100%;height:100%;min-height:0;position:relative}
+.scene{height:100%;min-height:0;position:relative;display:flex;flex-direction:column}
+.scene.is-off{justify-content:center;padding-top:max(14px,calc(36 * var(--u)))}
+.machine-stage{width:100%;flex:0 0 auto;margin:0 auto;position:relative}
+.machine{--design-height:260;--face-height:clamp(118px,calc(224 * var(--u)),550px);--machine-tail:max(14px,calc(36 * var(--u)));--dial-size:clamp(102px,calc(198 * var(--u)),486px);height:calc(var(--face-height) + var(--machine-tail));position:relative;isolation:isolate;z-index:2}
+.machine::before{content:"";position:absolute;z-index:-1;top:clamp(6px,calc(10 * var(--u)),18px);left:clamp(10px,calc(18 * var(--u)),42px);right:clamp(-9px,calc(-5 * var(--u)),-3px);height:auto;bottom:0;border-radius:clamp(18px,calc(34 * var(--u)),74px);background:linear-gradient(100deg,#e1e9ec,#edf2f3 15%,#dce6e9 96%);box-shadow:0 12px 30px #38505b0c}
+.face{height:var(--face-height);border-radius:clamp(18px,calc(32 * var(--u)),72px);position:relative;background:linear-gradient(155deg,#fff 0%,#fff 38%,#f3f7f7 76%,#e5edf0 100%);border:1px solid rgba(255,255,255,.88);box-shadow:inset 0 1px 2px #fff,0 12px 28px #3c4c5209}
+.power{position:absolute;z-index:4;top:clamp(10px,calc(19 * var(--u)),42px);right:clamp(12px,calc(24 * var(--u)),52px);width:clamp(28px,calc(32 * var(--u)),64px);height:clamp(28px,calc(32 * var(--u)),64px);display:grid;place-items:center;color:var(--accent);border-radius:50%;transition:color .3s,transform .2s}
+.power svg{width:clamp(15px,calc(16 * var(--u)),32px);height:clamp(15px,calc(16 * var(--u)),32px)}
+.power:hover{background:rgba(255,255,255,.75)}
+.power:active{transform:scale(.9)}
+.power.off{color:#8299a4}
+.model-controls{position:absolute;left:clamp(16px,calc(34 * var(--u)),80px);top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:clamp(3px,calc(15 * var(--u)),36px)}
+.control-button{width:clamp(28px,calc(36 * var(--u)),80px);height:clamp(28px,calc(36 * var(--u)),80px);display:grid;place-items:center;padding:0;border-radius:50%;color:#78939f;background:transparent;transition:color .2s,transform .2s}
+.control-button svg{width:clamp(15px,calc(18 * var(--u)),40px);height:clamp(15px,calc(18 * var(--u)),40px);fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
+.control-button:hover{color:var(--accent);background:rgba(217,235,243,.26)}
+.control-button:active{transform:scale(.9)}
+.control-button.active{color:var(--accent)}
+.speed-bars{stroke-width:2!important}
+.dial-box{position:absolute;right:clamp(44px,calc(63 * var(--u)),154px);top:calc((var(--face-height) - var(--dial-size)) / 2 - 3px);width:var(--dial-size);height:var(--dial-size);z-index:3}
+.dial{position:relative;display:block;width:100%;height:100%;overflow:visible;touch-action:none;cursor:pointer;outline:none}
+.dial .track{fill:none;stroke:rgba(139,165,176,.21);stroke-width:4;stroke-linecap:round}
+.dial .prog{fill:none;stroke:var(--accent);stroke-width:4;stroke-linecap:round;opacity:.86}
+.dial .knob{transform-box:fill-box;transform-origin:center;transition:scale .18s}
+.dial.is-dragging .knob{scale:1.12}
+.dial.is-off{opacity:.44;cursor:default}
+.dial-ticks{fill:none;stroke:var(--accent);stroke-width:1;opacity:0;transition:opacity .25s;pointer-events:none}
+.dial-ticks line{opacity:.25;stroke-linecap:round}
+.dial-ticks .selected{opacity:1;stroke-width:2.4}
+.dial-box:hover .dial:not(.is-off) .dial-ticks,.dial:focus-visible .dial-ticks,.dial-box.is-changing .dial-ticks{opacity:1}
+.dial-box::after{content:attr(data-delta);position:absolute;left:50%;bottom:7%;transform:translate(-50%,5px);font:500 clamp(9px,calc(12 * var(--u)),24px)/1 var(--font-num);letter-spacing:.01em;color:var(--accent);opacity:0;pointer-events:none;transition:opacity .2s,transform .3s var(--ease)}
+.dial-box.is-changing::after{opacity:.85;transform:translate(-50%,0)}
+#bigTemp{display:inline-block;will-change:transform;transform-origin:50% 60%}
+.dial-step-hints{position:absolute;left:23%;right:23%;top:49%;display:flex;justify-content:space-between;transform:translateY(-50%);pointer-events:none;color:var(--accent);font:400 clamp(10px,calc(17 * var(--u)),36px)/1 var(--font-num);opacity:0;transition:opacity .2s}
+.dial-box:hover:has(.dial:not(.is-off)) .dial-step-hints,.dial-box:has(.dial:focus-visible:not(.is-off)) .dial-step-hints{opacity:.38}
+.dial-core{position:absolute;inset:23% 16% 24%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12 * var(--u));pointer-events:none}
+.core-temp{display:flex;align-items:flex-start;gap:clamp(3px,calc(4 * var(--u)),10px);font-family:var(--font-num);font-size:clamp(28px,calc(48 * var(--u)),116px);font-weight:350;line-height:1;letter-spacing:-.06em;font-variant-numeric:tabular-nums;color:#2c444f}
+.core-temp i{font-size:clamp(10px,calc(13 * var(--u)),30px);font-weight:450;font-style:normal;letter-spacing:0;margin-top:clamp(4px,calc(8 * var(--u)),19px);color:#89a0ac}
+.climate-reading{display:flex;align-items:center;gap:clamp(6px,calc(12 * var(--u)),28px);font-family:var(--font-num);font-size:clamp(8px,calc(10 * var(--u)),24px);font-weight:500;letter-spacing:0;color:#91a6af}
+.climate-reading span{display:flex;align-items:center;gap:calc(4 * var(--u))}
+.climate-reading svg{width:clamp(8px,calc(10 * var(--u)),24px);height:clamp(8px,calc(10 * var(--u)),24px);fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
+body.is-off .dial-core{opacity:.72}
+body.is-off .control-button{color:#92a5ae}
+.machine-bottom{position:absolute;bottom:0;left:clamp(11px,calc(17 * var(--u)),42px);right:clamp(11px,calc(17 * var(--u)),42px);height:clamp(18px,calc(32 * var(--u)),79px);border:1px solid #859fa933;border-radius:clamp(5px,calc(7 * var(--u)),16px) clamp(5px,calc(7 * var(--u)),16px) clamp(10px,calc(17 * var(--u)),42px) clamp(10px,calc(17 * var(--u)),42px);overflow:hidden;isolation:isolate;background:linear-gradient(180deg,#829ba5 0%,#526e79 30%,#68838e 72%,#a3bac3 100%);box-shadow:inset 0 2px 4px #344e5b2b,0 1px 0 #ffffffa6}
+.machine-bottom::before,.machine-bottom::after{content:"";position:absolute;inset:0 auto 0 0;width:clamp(3px,calc(5 * var(--u)),12px);z-index:2;pointer-events:none;background:linear-gradient(180deg,#d3e0e5,#a7bdc6 65%,#e1eaed);opacity:.78}
+.machine-bottom::after{left:auto;right:0}
+.dark-slat{position:absolute;inset:2px clamp(6px,calc(10 * var(--u)),24px);border-radius:5px;opacity:.32;background:repeating-linear-gradient(90deg,transparent 0 7px,#d9e7ec26 7px 8px)}
+.louver{--vane-top:0%;--vane-height:100%;position:absolute;left:clamp(3px,calc(5 * var(--u)),12px);right:clamp(3px,calc(5 * var(--u)),12px);top:var(--vane-top);height:var(--vane-height);min-height:0;border-radius:clamp(4px,calc(7 * var(--u)),18px);background:linear-gradient(180deg,#f7fafb 0%,#e5edf0 38%,#c6d7de 74%,#a8bec8 100%);border-top:1px solid #ffffffe0;border-bottom:1px solid #8aa5b04d;box-shadow:0 2px 3px #314e5b24;transition:top .16s linear,height .16s linear;transform:none}
+.louver::before{content:"";position:absolute;left:5px;right:5px;top:1px;height:1px;background:linear-gradient(90deg,transparent,#ffffffa6 20%,#ffffff80 80%,transparent);pointer-events:none}
+.is-off .machine-bottom{background:linear-gradient(180deg,#b3c7cf,#d9e4e9)}
+.airflow-canvas{display:block;position:relative;flex:1 1 0;height:0;min-height:0;width:98%;margin:var(--air-overlap,calc(-40 * var(--u))) auto 0;pointer-events:none;transition:opacity .35s}
+.scene.is-off .airflow-canvas{display:none;opacity:0}
+
+/* 边缘承接模式特征，中央机身保持干净。 */
+.room-atmosphere{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;opacity:.72;transition:opacity 1s}
+.room-atmosphere::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 0 6%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 33%),radial-gradient(ellipse at 100% 94%,color-mix(in srgb,var(--accent) 15%,transparent),transparent 35%);opacity:calc(.65 + var(--thermal-level,.3) * .35);transition:opacity 1s}
+.room-atmosphere .edge-motif{position:absolute;display:block;width:clamp(72px,12vmin,148px);height:clamp(72px,12vmin,148px);left:-30px;top:9%;opacity:.38;animation:edge-breathe 12s ease-in-out infinite alternate}
+.edge-motif svg{display:block;width:100%;height:100%;fill:none;stroke:var(--accent);stroke-width:1.05;stroke-linecap:round;stroke-linejoin:round}
+.edge-motif use{display:none}
+body.mode-cool .edge-cool,body.mode-heat .edge-heat,body.mode-dry .edge-dry,body.mode-fan .edge-fan,body.mode-auto .edge-auto{display:inline}
+.room-atmosphere .edge-motif:nth-child(2){left:auto;right:-36px;top:26%;rotate:24deg;animation-delay:-4s}
+.room-atmosphere .edge-motif:nth-child(3){top:68%;left:-44px;rotate:50deg;animation-delay:-7s}
+.room-atmosphere .edge-motif:nth-child(4){left:auto;right:-32px;top:81%;rotate:16deg;animation-delay:-3s}
+.room-atmosphere .edge-motif:nth-child(5){top:auto;bottom:-48px;left:21%;rotate:-14deg;animation-delay:-9s}
+.room-atmosphere .edge-motif:nth-child(6){left:auto;right:15%;top:-50px;rotate:30deg;animation-delay:-6s}
+body.mode-cool .tint.cool{animation:cool-drift 19s ease-in-out infinite alternate}
+body.mode-heat .tint.heat{animation:heat-rise 16s ease-in-out infinite alternate}
+body.mode-dry .tint.dry{animation:dry-breathe 22s ease-in-out infinite alternate}
+body.mode-fan .tint.fan{animation:fan-drift 12s ease-in-out infinite alternate}
+body.mode-auto .tint.auto{animation:auto-drift 20s ease-in-out infinite alternate}
+body.mode-heat .room-atmosphere .edge-motif{animation:edge-rise 14s ease-in-out infinite alternate;opacity:.3}
+body.mode-dry .room-atmosphere{opacity:.5}
+body.mode-dry .room-atmosphere .edge-motif:nth-child(even){display:none}
+body.mode-fan .room-atmosphere .edge-motif,body.mode-auto .room-atmosphere .edge-motif{width:clamp(110px,20vmin,240px);opacity:.24;animation:edge-breeze 14s ease-in-out infinite alternate}
+body.is-off .room-atmosphere{opacity:0}
+body.is-off .tint{opacity:.055!important}
+body.is-off .room-atmosphere i,body.is-off .tint,body.page-hidden .room-atmosphere i,body.page-hidden .tint{animation-play-state:paused!important}
+@keyframes edge-breathe{from{opacity:.23}to{opacity:.45}}
+@keyframes edge-rise{from{translate:0 10px}to{translate:0 -12px}}
+@keyframes edge-breeze{from{translate:-8px 0}to{translate:10px 0}}
+@keyframes cool-drift{from{transform:translate3d(-2%,-3%,0) scale(1.02)}to{transform:translate3d(3%,5%,0) scale(1.08)}}
+@keyframes heat-rise{from{transform:translate3d(0,6%,0) scale(1.03)}to{transform:translate3d(-3%,-5%,0) scale(1.1)}}
+@keyframes dry-breathe{from{transform:scale(1)}to{transform:scale(1.09)}}
+@keyframes fan-drift{from{transform:translate3d(-6%,2%,0) rotate(-3deg)}to{transform:translate3d(6%,-2%,0) rotate(3deg)}}
+@keyframes auto-drift{from{transform:translate3d(-3%,4%,0) scale(1)}to{transform:translate3d(4%,-3%,0) scale(1.1)}}
+
+body.freeze *,body.freeze *::before,body.freeze *::after{animation:none!important;transition:none!important}
+
+/* 仅供读屏的状态播报，不参与布局。 */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+
+/* ---------- 定时抽屉：空调下方的折叠面板 ---------- */
+.timer-drawer{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(620px,96%);display:flex;flex-direction:column;gap:8px;z-index:6;pointer-events:none}
+.timer-drawer>*{pointer-events:auto}
+.timer-handle{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 16px;border-radius:24px;background:#ffffffd9;border:1px solid #ffffffef;box-shadow:0 10px 26px -18px #3d5a68,inset 0 1px 0 #fff;color:#597583;font-size:12px;letter-spacing:.02em;transition:color .2s,background .2s;backdrop-filter:blur(10px)}
+.timer-handle:hover{color:var(--accent);background:#fffffff2}
+.timer-handle svg{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.timer-label{font-weight:600}
+.timer-summary{margin-left:auto;color:#8ba1ac;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
+.timer-summary.is-active{color:var(--accent);font-weight:600}
+.timer-chevron{transition:transform .25s var(--ease);opacity:.72}
+.timer-drawer.is-open .timer-chevron{transform:rotate(180deg)}
+.timer-panel{background:#ffffffec;border:1px solid #fff;border-radius:22px;box-shadow:0 20px 46px -30px #3c5563;backdrop-filter:blur(14px);padding:14px 16px;display:grid;gap:10px;max-height:min(340px,56dvh);overflow-y:auto;animation:timer-in .24s var(--ease)}
+@keyframes timer-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.timer-head{display:flex;align-items:baseline;gap:10px}
+.timer-caption{font-weight:600;color:#334b56;font-size:13px}
+.timer-state{margin-left:auto;color:#6c8794;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:68%}
+.timer-state.is-error{color:#c2634d}
+.timer-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.timer-seg{display:inline-flex;padding:3px;border-radius:14px;background:#eef4f6}
+.timer-seg-btn{border:0;background:transparent;color:#6f8792;font-size:12px;padding:6px 14px;border-radius:11px;cursor:pointer;transition:background .2s,color .2s}
+.timer-seg-btn.is-active{background:#fff;color:var(--accent);box-shadow:0 2px 6px #46606b14;font-weight:600}
+.timer-chip{border:1px solid #e2ecef;background:#fff;color:#6f8792;font-size:12px;padding:6px 12px;border-radius:12px;cursor:pointer;transition:border-color .2s,color .2s,background .2s}
+.timer-chip:hover{color:var(--accent)}
+.timer-chip.is-active{border-color:color-mix(in srgb,var(--accent) 42%,#fff);background:color-mix(in srgb,var(--accent) 10%,#fff);color:var(--accent);font-weight:600}
+.timer-clock label{font-size:12px;color:#6f8792}
+#timerTime{border:1px solid #dbe7ea;border-radius:10px;padding:6px 10px;font:inherit;font-size:12px;color:#3d5560;background:#fff;color-scheme:light}
+.timer-actions{justify-content:flex-end;gap:8px}
+.timer-start{border-radius:12px;padding:9px 22px;background:var(--accent);color:#fff;font-size:12px;font-weight:600;box-shadow:0 8px 18px -12px var(--accent);transition:filter .2s,opacity .2s}
+.timer-start:hover{filter:brightness(1.05)}
+.timer-start:disabled{opacity:.45;box-shadow:none;filter:none;cursor:default}
+.timer-cancel{border-radius:12px;padding:9px 16px;border:1px solid #e0eaee;background:#fff;color:#718895;font-size:12px;transition:color .2s,border-color .2s}
+.timer-cancel:hover{color:#c2634d;border-color:#edd6cd}
+.timer-hint{margin:0;color:#93a7b1;font-size:11px;line-height:1.5}
+@media(max-height:640px){.timer-head{display:none}.timer-panel{padding:8px 12px;gap:6px;max-height:44dvh}.timer-hint{display:none}.timer-chip{padding:4px 10px}.timer-seg-btn{padding:4px 12px}.timer-handle{min-height:42px}}
+@media(max-height:520px){.timer-panel{max-height:42dvh}}
+
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+[hidden]{display:none!important}
+button:disabled{cursor:default;opacity:.45}
+.device-settings{position:fixed;right:clamp(12px,2vw,27px);bottom:clamp(10px,2vh,23px);width:30px;height:30px;color:#668c9e;display:grid;place-items:center;border-radius:50%;z-index:20}
+.device-settings:hover{color:var(--accent);background:#fff8}
+.device-settings svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.45;stroke-linecap:round}
+.device-settings circle{fill:#f1f5f7}
+.connection-note{position:fixed;left:clamp(14px,2vw,29px);bottom:clamp(15px,2vh,30px);color:#819ca9;font-size:11px;text-decoration:none}
+.connection-note:hover{color:var(--accent)}
+.command-message{position:fixed;top:24px;left:50%;transform:translateX(-50%);max-width:calc(100% - 40px);padding:10px 16px;border:1px solid #fff;background:#fffc;border-radius:18px;color:#7e949f;font-size:12px;line-height:1.5;box-shadow:0 7px 26px -16px #5c7d8c}
+</style>
+</head>
+<body class="mode-cool">
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute"><defs>
+  <symbol id="icon-mode-cool" viewBox="0 0 24 24"><path d="M12 2.5v19M4.5 7.25l15 9.5M19.5 7.25l-15 9.5"/></symbol>
+  <symbol id="icon-mode-heat" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.2 5.2l1.8 1.8M17 17l1.8 1.8M18.8 5.2L17 7M7 17l-1.8 1.8"/></symbol>
+  <symbol id="icon-mode-dry" viewBox="0 0 24 24"><path d="M12 3.4c3.3 3.7 5.6 6.6 5.6 9.4a5.6 5.6 0 1 1-11.2 0c0-2.8 2.3-5.7 5.6-9.4z"/></symbol>
+  <symbol id="icon-mode-fan" viewBox="0 0 24 24"><path d="M3.5 8.5h9.6a2.4 2.4 0 1 0-2.4-2.4M3.5 15.5h11.2a2.5 2.5 0 1 1-2.5 2.5M3.5 12h5.5"/></symbol>
+  <symbol id="icon-mode-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M8.6 16.2L12 7.8l3.4 8.4M9.9 13.6h4.2"/></symbol>
+  <symbol id="icon-speed-auto" viewBox="0 0 24 24"><path d="M7.5 18L12 6l4.5 12M9 14.2h6"/></symbol>
+  <symbol id="icon-speed-low" viewBox="0 0 24 24"><path d="M12 18v-5"/></symbol>
+  <symbol id="icon-speed-medium" viewBox="0 0 24 24"><path d="M9 18v-5"/><path d="M15 18v-9"/></symbol>
+  <symbol id="icon-speed-high" viewBox="0 0 24 24"><path d="M6 18v-5"/><path d="M12 18v-9"/><path d="M18 18v-13"/></symbol>
+  <symbol id="icon-direction-up" viewBox="0 0 24 24"><path d="M4.5 12h15M19.5 12L14 6.5M19.5 12L14 17.5"/></symbol>
+  <symbol id="icon-direction-mid" viewBox="0 0 24 24"><path d="M6 6l12 12M18 18h-6.5M18 18v-6.5"/></symbol>
+  <symbol id="icon-direction-down" viewBox="0 0 24 24"><path d="M12 4.5v15M12 19.5l-5.5-5.5M12 19.5l5.5-5.5"/></symbol>
+  <symbol id="icon-direction-swing" viewBox="0 0 24 24"><path d="M8 4v16M8 4L4.8 7.2M8 4l3.2 3.2M16 20V4M16 20l-3.2-3.2M16 20l3.2-3.2"/></symbol>
+
+  <symbol id="edge-frost" viewBox="0 0 100 100"><path d="M50 5v90M11 27l78 46M11 73l78-46M50 23L39 13m11 10 11-10M50 77 39 87m11-10 11 10M28 37l-2-15m2 15-15 3M72 63l2 15m-2-15 15-3M28 63l-15-3m15 3-2 15M72 37l15 3m-15-3 2-15M40 44l10-6 10 6v12l-10 6-10-6z"/></symbol>
+  <symbol id="edge-warm" viewBox="0 0 100 100"><path d="M22 92C1 69 45 58 25 34S21 8 26 3M50 98C26 70 72 56 53 31S49 7 54 0M78 94C57 72 97 60 80 39S76 10 81 3"/></symbol>
+  <symbol id="edge-dry" viewBox="0 0 100 100"><path d="M44 17C32 36 25 43 25 53a19 19 0 0 0 38 0c0-10-8-19-19-36zM79 54c-6 10-10 14-10 20a10 10 0 0 0 20 0c0-6-5-11-10-20zM17 78c-3 5-5 7-5 10a5 5 0 0 0 10 0c0-3-2-5-5-10z"/></symbol>
+  <symbol id="edge-breeze" viewBox="0 0 100 100"><path d="M-15 30C15 2 61 63 115 25M-15 51C22 18 62 79 115 46M-15 72C21 40 67 98 115 67"/></symbol>
+  <symbol id="icon-direction-fixed" viewBox="0 0 24 24"><path d="M8 6v12M16 6v12"/></symbol>
+</defs></svg>
+<div class="bg-base" aria-hidden="true"></div>
+<div class="tint cool" aria-hidden="true"></div><div class="tint heat" aria-hidden="true"></div><div class="tint dry" aria-hidden="true"></div><div class="tint fan" aria-hidden="true"></div><div class="tint auto" aria-hidden="true"></div>
+<div class="room-atmosphere" aria-hidden="true"><i class="edge-motif"><svg viewBox="0 0 100 100"><use class="edge-cool" href="#edge-frost"/><use class="edge-heat" href="#edge-warm"/><use class="edge-dry" href="#edge-dry"/><use class="edge-fan" href="#edge-breeze"/><use class="edge-auto" href="#edge-breeze"/></svg></i><i class="edge-motif"><svg viewBox="0 0 100 100"><use class="edge-cool" href="#edge-frost"/><use class="edge-heat" href="#edge-warm"/><use class="edge-dry" href="#edge-dry"/><use class="edge-fan" href="#edge-breeze"/><use class="edge-auto" href="#edge-breeze"/></svg></i><i class="edge-motif"><svg viewBox="0 0 100 100"><use class="edge-cool" href="#edge-frost"/><use class="edge-heat" href="#edge-warm"/><use class="edge-dry" href="#edge-dry"/><use class="edge-fan" href="#edge-breeze"/><use class="edge-auto" href="#edge-breeze"/></svg></i><i class="edge-motif"><svg viewBox="0 0 100 100"><use class="edge-cool" href="#edge-frost"/><use class="edge-heat" href="#edge-warm"/><use class="edge-dry" href="#edge-dry"/><use class="edge-fan" href="#edge-breeze"/><use class="edge-auto" href="#edge-breeze"/></svg></i><i class="edge-motif"><svg viewBox="0 0 100 100"><use class="edge-cool" href="#edge-frost"/><use class="edge-heat" href="#edge-warm"/><use class="edge-dry" href="#edge-dry"/><use class="edge-fan" href="#edge-breeze"/><use class="edge-auto" href="#edge-breeze"/></svg></i><i class="edge-motif"><svg viewBox="0 0 100 100"><use class="edge-cool" href="#edge-frost"/><use class="edge-heat" href="#edge-warm"/><use class="edge-dry" href="#edge-dry"/><use class="edge-fan" href="#edge-breeze"/><use class="edge-auto" href="#edge-breeze"/></svg></i></div>
+<div class="shell">
+  <main class="hero" aria-label="客厅空调">
+    <section class="scene" id="scene">
+      <div class="machine-stage">
+        <div class="machine">
+          <div class="face">
+            <button id="power" class="power" type="button" aria-label="关机" title="关机"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 2.5v9.5"/><path d="M6.4 6.2a8 8 0 1 0 11.2 0"/></svg></button>
+            <div class="model-controls">
+              <button id="modeControl" class="control-button active" type="button" aria-label="制冷，点击切换" title="制冷" data-mode="cool"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-mode-cool"></use></svg></button>
+              <button id="speedControl" class="control-button" type="button" aria-label="自动风速，点击切换" title="自动风速" data-speed="auto"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-speed-auto"></use></svg></button>
+              <button id="directionControl" class="control-button" type="button" aria-label="下吹，点击切换" title="下吹" data-direction="down" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-direction-down"></use></svg></button>
+            </div>
+            <div class="dial-box">
+              <svg class="dial" id="dial" viewBox="0 0 360 360" role="slider" tabindex="0" aria-label="设定温度" aria-valuemin="16" aria-valuemax="32" aria-valuenow="26" aria-describedby="climateReading">
+                <rect id="dialHit" width="360" height="360" fill="none" pointer-events="all"></rect>
+                <path id="track" class="track"></path><path id="prog" class="prog"></path>
+                <g id="knob" class="knob"><circle r="15" fill="transparent"></circle><circle r="9" fill="#fff" stroke="var(--accent)" stroke-width="2.8"></circle></g>
+              </svg>
+              <div class="dial-core">
+                <div class="core-temp"><span id="bigTemp">26</span><i>°C</i></div>
+                <div class="climate-reading" id="climateReading" aria-label="室温 27 摄氏度，湿度 58%">
+                  <span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 9.2V3a2 2 0 0 1 4 0v6.2a3.5 3.5 0 1 1-4 0Z"/><path d="M8 4v7"/></svg><data id="roomTemperature" value="27">27°</data></span>
+                  <span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5C6 4.2 3.8 6.7 3.8 9.5a4.2 4.2 0 1 0 8.4 0C12.2 6.7 10 4.2 8 1.5Z"/></svg><data id="roomHumidity" value="58">58%</data></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="machine-bottom"><div class="dark-slat"></div><div class="louver" id="louver"></div></div>
+        </div>
+      </div>
+      <canvas class="airflow-canvas" id="airCanvas" aria-hidden="true"></canvas>
+      <section class="timer-drawer" id="timerDrawer" aria-label="定时">
+        <div class="timer-panel" id="timerPanel" hidden>
+          <div class="timer-head">
+            <span class="timer-caption">定时</span>
+            <span class="timer-state" id="timerState">未设置</span>
+          </div>
+          <div class="timer-row">
+            <div class="timer-seg" role="group" aria-label="到点动作">
+              <button class="timer-seg-btn is-active" type="button" data-action="off" aria-pressed="true">关机</button>
+              <button class="timer-seg-btn" type="button" data-action="on" aria-pressed="false">开机</button>
+            </div>
+            <div class="timer-seg" role="group" aria-label="定时方式">
+              <button class="timer-seg-btn is-active" type="button" data-mode="after" aria-pressed="true">倒计时</button>
+              <button class="timer-seg-btn" type="button" data-mode="at" aria-pressed="false">指定时刻</button>
+            </div>
+          </div>
+          <div class="timer-row timer-durations" id="timerDurations" role="group" aria-label="倒计时时长">
+            <button class="timer-chip" type="button" data-minutes="30">30 分钟</button>
+            <button class="timer-chip is-active" type="button" data-minutes="60">1 小时</button>
+            <button class="timer-chip" type="button" data-minutes="120">2 小时</button>
+            <button class="timer-chip" type="button" data-minutes="240">4 小时</button>
+            <button class="timer-chip" type="button" data-minutes="480">8 小时</button>
+          </div>
+          <div class="timer-row timer-clock" id="timerClock" hidden>
+            <label for="timerTime">到点时刻</label>
+            <input type="time" id="timerTime" step="60">
+          </div>
+          <div class="timer-row timer-actions">
+            <button class="timer-start" id="timerStart" type="button">开始定时</button>
+            <button class="timer-cancel" id="timerCancel" type="button" hidden>取消定时</button>
+          </div>
+          <p class="timer-hint" id="timerHint">到点由本机服务执行，程序保持运行即可（可最小化或悬浮）。</p>
+        </div>
+        <span class="sr-only" id="timerAnnounce" role="status" aria-live="polite"></span>
+        <button class="timer-handle" id="timerHandle" type="button" aria-expanded="false" aria-controls="timerPanel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6v4.9l3.1 1.9"/></svg>
+          <span class="timer-label">定时</span>
+          <span class="timer-summary" id="timerSummary">未设置</span>
+          <svg class="timer-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
+        </button>
+      </section>
+    </section>
+  </main>
+</div>
+<a class="device-settings" id="deviceSettings" href="/setup" aria-label="空调设置" title="空调设置" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="11" rx="3"/><path d="M5 11.5h14M6 15v1.5m6-1.5v3m6-3v1.5M17 7h1"/></svg></a>
+<a class="connection-note" id="deviceConnection" href="/setup" hidden>连接空调</a>
+<div class="command-message" id="deviceMessage" role="status" aria-live="polite" hidden></div>
+<script>
+(() => {
+  'use strict';
+
+  const TEMPERATURE = Object.freeze({ min: 16, max: 32 });
+  const CLIMATE = Object.freeze({ temperature: 27, humidity: 58 });
+  const DIAL = Object.freeze({ center: 180, radius: 138, start: 135, end: 405, deadZone: .26 });
+  const SIMULATION = Object.freeze({ step: 1 / 60, maxFrameDelta: .05, maxParticles: 180, maxDpr: 3, seed: 84619, staticSteps: 240 });
+  const FAN_SPEED = Object.freeze({ low: 86, medium: 185, high: 360 });
+  const DIRECTION_PITCH = Object.freeze({ up: 16, mid: 48, down: 78, fixed: 78 });
+  const SWING = Object.freeze({ center: 47, amplitude: 39, period: 5.6 });
+  const KEY_STEPS = Object.freeze({ ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 2, PageDown: -2 });
+  const DEFAULT_STATE = Object.freeze({ power: true, temp: 26, mode: 'cool', speed: 'auto', direction: 'down' });
+  const CONTROLS = {
+    mode: {
+      id: 'modeControl', order: ['cool', 'heat', 'dry', 'fan', 'auto'],
+      labels: { cool: '制冷', heat: '制热', dry: '除湿', fan: '送风', auto: '自动' }
+    },
+    speed: {
+      id: 'speedControl', order: ['auto', 'low', 'medium', 'high'],
+      labels: { auto: '自动风速', low: '低风速', medium: '中风速', high: '高风速' }
+    },
+    direction: {
+      id: 'directionControl', order: ['up', 'mid', 'down', 'swing'],
+      labels: { up: '平吹', mid: '斜下', down: '下吹', swing: '上下扫风', fixed: '停止扫风' }
+    }
+  };
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const roundCoordinate = value => (Math.round(value * 100) / 100).toString();
+  const requiredElement = id => {
+    const element = document.getElementById(id);
+    if (!element) throw new Error('Missing element: ' + id);
+    return element;
+  };
+
+  // stream 描述气流主体：count 条流线，width 中段最大宽度，alpha 主透明度，
+  // curl 摆动幅度，length 相对风程，spread 下游张开程度。
+  // markAlpha/markSize 控制稀疏微光；制冷不画微光，只保留连续雾带与流线。
+  const WIND_PROFILES = {
+    cool: {
+      name:'连续冷雾 · 柔和雾带', primary:'12,133,218', secondary:'72,195,239', highlight:'242,254,255',
+      stream:{ veil:{ count:12, width:178, alpha:.100 }, lines:{ count:9, width:8, alpha:.190, color:'242,254,255' }, blur:{ veil:12, line:2.2 }, curl:1.52, length:.98, spread:.13 },
+      markAlpha:0, markSize:[0,0], emission:1, turbulence:1.02, spread:.9,
+      reach:1.10, fade:.80, sway:1
+    },
+    heat: {
+      name:'琥珀暖雾 · 舒卷热流', primary:'226,147,78', secondary:'249,204,143', highlight:'255,247,221',
+      stream:{ veil:{ count:11, width:172, alpha:.112 }, lines:{ count:8, width:8, alpha:.195, color:'255,247,221' }, blur:{ veil:12, line:2.2 }, curl:1.82, length:1.0, spread:.17 },
+      markAlpha:.45, markSize:[2.2,2.6], emission:1.2, turbulence:1.85, spread:1.3,
+      reach:1.02, fade:.80, sway:1.35
+    },
+    dry: {
+      name:'淡紫水汽 · 渐隐微珠', primary:'126,132,197', secondary:'186,184,227', highlight:'249,247,255',
+      stream:{ veil:{ count:10, width:150, alpha:.098 }, lines:{ count:7, width:6, alpha:.175, color:'249,247,255' }, blur:{ veil:13, line:2.4 }, curl:1.02, length:.90, spread:.10 },
+      markAlpha:.50, markSize:[2.0,2.2], emission:1.6, turbulence:.65, spread:.7,
+      reach:.94, fade:.80, sway:.75
+    },
+    fan: {
+      name:'青绿清风 · 轻盈流线', primary:'82,169,145', secondary:'161,215,188', highlight:'245,255,250',
+      stream:{ veil:{ count:11, width:155, alpha:.090 }, lines:{ count:10, width:6, alpha:.195, color:'245,255,250' }, blur:{ veil:11, line:2.1 }, curl:1.52, length:1.0, spread:.12 },
+      markAlpha:.40, markSize:[1.8,2.0], emission:1.3, turbulence:1.25, spread:1.18,
+      reach:1.06, fade:.82, sway:1.15
+    },
+    auto: {
+      name:'双色柔雾 · 舒适气流', primary:'89,171,177', secondary:'146,174,223', highlight:'243,255,252',
+      stream:{ veil:{ count:11, width:162, alpha:.098 }, lines:{ count:9, width:7, alpha:.190, color:'243,255,252' }, blur:{ veil:12, line:2.2 }, curl:1.40, length:1.0, spread:.12 },
+      markAlpha:.45, markSize:[2.0,2.2], emission:1.3, turbulence:1.15, spread:1,
+      reach:1.04, fade:.82, sway:1.05
+    }
+  };
+
+  class TemperatureDial {
+    constructor({ element, progress, knob, readout, getState, getLimits, onChange, signal }) {
+      Object.assign(this, { element, progress, knob, readout, getState, getLimits, onChange });
+      this.pointerId = null;
+      this.lastTemperature = null;
+      this.lastPower = null;
+      this.frame = null;
+      this.displayAngle = null;
+      this.feedbackTimer = null;
+      this.box = element.closest('.dial-box');
+      this.motion = matchMedia('(prefers-reduced-motion: reduce)');
+      this.readoutAnimation = null;
+      element.addEventListener('pointerdown', event => this.beginDrag(event), { signal });
+      element.addEventListener('pointermove', event => this.moveDrag(event), { signal });
+      for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+        element.addEventListener(type, event => {
+          if (event.pointerId === this.pointerId) this.cancelDrag();
+        }, { signal });
+      }
+      element.addEventListener('wheel', event => this.handleWheel(event), { passive: false, signal });
+      element.addEventListener('keydown', event => this.handleKey(event), { signal });
+      element.querySelector('#track').setAttribute('d', this.arc(DIAL.start, DIAL.end));
+      this.ticks = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      this.ticks.setAttribute('class', 'dial-ticks');
+      this.ticks.setAttribute('aria-hidden', 'true');
+      progress.before(this.ticks);
+      const hints=document.createElement('div');
+      hints.className='dial-step-hints';hints.setAttribute('aria-hidden','true');
+      hints.innerHTML='<span>−</span><span>+</span>';this.box.append(hints);
+      this.motion.addEventListener('change',()=>{if(this.motion.matches)this.stopMotion()},{signal});
+      signal?.addEventListener('abort', () => this.dispose(), { once:true });
+    }
+
+    point(angle) {
+      const radians = angle * Math.PI / 180;
+      return [DIAL.center + DIAL.radius * Math.cos(radians), DIAL.center + DIAL.radius * Math.sin(radians)];
+    }
+
+    arc(start, end) {
+      if (end - start < .5) return '';
+      const [x0, y0] = this.point(start), [x1, y1] = this.point(end);
+      return `M ${roundCoordinate(x0)} ${roundCoordinate(y0)} A ${DIAL.radius} ${DIAL.radius} 0 ${end - start > 180 ? 1 : 0} 1 ${roundCoordinate(x1)} ${roundCoordinate(y1)}`;
+    }
+
+    temperatureAt(event) {
+      const rect = this.element.getBoundingClientRect();
+      const dx = event.clientX - rect.left - rect.width / 2;
+      const dy = event.clientY - rect.top - rect.height / 2;
+      if (Math.hypot(dx, dy) < rect.width * DIAL.deadZone) return null;
+      let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+      if (angle < 0) angle += 360;
+      if (angle > 45 && angle < 135) angle = angle < 90 ? 45 : 135;
+      if (angle < DIAL.start) angle += 360;
+      angle = clamp(angle, DIAL.start, DIAL.end);
+      const limits = this.getLimits();
+      return limits.min + (angle - DIAL.start) / (DIAL.end - DIAL.start) * (limits.max - limits.min);
+    }
+
+    beginDrag(event) {
+      if (!this.getState().power || event.button !== 0 || !event.isPrimary || this.pointerId !== null) return;
+      let temperature = this.temperatureAt(event);
+      this.stepClick = temperature === null;
+      if (this.stepClick) {
+        const rect = this.element.getBoundingClientRect();
+        temperature = this.getState().temp + (event.clientX >= rect.left + rect.width / 2 ? 1 : -1);
+      }
+      event.preventDefault();
+      this.pointerId = event.pointerId;
+      this.element.setPointerCapture(event.pointerId);
+      this.element.classList.add('is-dragging');
+      this.onChange(temperature);
+      this.press();
+    }
+
+    moveDrag(event) {
+      if (event.pointerId !== this.pointerId || !this.getState().power || this.stepClick) return;
+      const temperature = this.temperatureAt(event);
+      if (temperature !== null) this.onChange(temperature);
+    }
+
+    cancelDrag() {
+      const pointerId = this.pointerId;
+      this.pointerId = null;
+      this.element.classList.remove('is-dragging');
+      if (pointerId !== null && this.element.hasPointerCapture(pointerId)) {
+        this.element.releasePointerCapture(pointerId);
+      }
+    }
+
+    handleWheel(event) {
+      if (!this.getState().power || event.ctrlKey || !event.deltaY) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.onChange(this.getState().temp - Math.sign(event.deltaY));
+      this.press();
+    }
+
+    handleKey(event) {
+      const state = this.getState();
+      if (!state.power) return;
+      const limits = this.getLimits();
+      let temperature;
+      if (event.key === 'Home') temperature = limits.min;
+      else if (event.key === 'End') temperature = limits.max;
+      else if (Object.hasOwn(KEY_STEPS, event.key)) temperature = state.temp + KEY_STEPS[event.key];
+      else return;
+      event.preventDefault();
+      this.onChange(temperature);
+      this.press();
+    }
+
+    reduced() { return this.motion.matches || document.body.classList.contains('freeze'); }
+
+    press() {
+      if (this.reduced()) return;
+      this.pressAnimation?.cancel();
+      this.pressAnimation = this.progress.animate([
+        {strokeWidth:7,filter:'drop-shadow(0 0 5px var(--accent))'},
+        {strokeWidth:4,filter:'drop-shadow(0 0 0px transparent)'}
+      ], {duration:360,easing:'ease-out'});
+    }
+
+    drawAngle(angle) {
+      this.displayAngle = angle;
+      const [x,y] = this.point(angle);
+      this.progress.setAttribute('d', this.arc(DIAL.start, angle));
+      this.progress.style.opacity = angle > DIAL.start + .01 ? '' : '0';
+      this.knob.setAttribute('transform', `translate(${roundCoordinate(x)} ${roundCoordinate(y)})`);
+    }
+
+    animateTo(angle, immediate) {
+      this.targetAngle=angle;
+      if (this.frame !== null) cancelAnimationFrame(this.frame);
+      this.frame = null;
+      if (immediate || this.reduced() || this.displayAngle === null) { this.drawAngle(angle); return; }
+      const start = this.displayAngle, started = performance.now();
+      const tick = now => {
+        const progress = Math.min(1, (now-started)/240);
+        this.drawAngle(start+(angle-start)*(1-Math.pow(1-progress,3)));
+        if (progress < 1) this.frame=requestAnimationFrame(tick);
+        else this.frame=null;
+      };
+      this.frame=requestAnimationFrame(tick);
+    }
+
+    changeFeedback(delta) {
+      if (this.reduced() || !delta) return;
+      this.readoutAnimation?.cancel();
+      this.readoutAnimation=this.readout.animate([
+        {transform:`translateY(${delta>0?8:-8}px) scale(.94)`,opacity:.24,filter:'blur(1px)'},
+        {transform:'translateY(0) scale(1)',opacity:1,filter:'blur(0)'}
+      ], {duration:300,easing:'cubic-bezier(.18,.8,.25,1)'});
+      this.box.dataset.delta=`${delta>0?'+':'−'}${Math.abs(delta)}°`;
+      this.box.classList.add('is-changing');
+      clearTimeout(this.feedbackTimer);
+      this.feedbackTimer=setTimeout(()=>this.box.classList.remove('is-changing'),650);
+      this.press();
+    }
+
+    buildTicks(limits) {
+      this.ticks.replaceChildren();
+      for (let temp=limits.min; temp<=limits.max; temp++) {
+        const angle=DIAL.start+(temp-limits.min)/(limits.max-limits.min)*(DIAL.end-DIAL.start);
+        const radians=angle*Math.PI/180;
+        const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+        const radius=DIAL.radius-13;
+        for(const [name,value] of Object.entries({x1:180+radius*Math.cos(radians),y1:180+radius*Math.sin(radians),x2:180+(radius-4)*Math.cos(radians),y2:180+(radius-4)*Math.sin(radians)}))line.setAttribute(name,roundCoordinate(value));
+        line.dataset.temp=temp;
+        this.ticks.append(line);
+      }
+    }
+
+    dispose() {
+      this.cancelDrag();
+      this.stopMotion();
+    }
+
+    stopMotion() {
+      if(this.frame!==null)cancelAnimationFrame(this.frame);
+      clearTimeout(this.feedbackTimer);
+      this.readoutAnimation?.cancel();this.pressAnimation?.cancel();
+      this.frame=null;
+      this.box.classList.remove('is-changing');
+      if(this.targetAngle!==undefined)this.drawAngle(this.targetAngle);
+    }
+
+    render({ temp, power }) {
+      const limits = this.getLimits();
+      const range = `${limits.min}:${limits.max}`;
+      if (power !== this.lastPower) {
+        this.element.classList.toggle('is-off', !power);
+        this.element.setAttribute('aria-disabled', String(!power));
+        if (!power) { this.cancelDrag();this.stopMotion(); }
+        this.lastPower = power;
+      }
+      if (temp === this.lastTemperature && range === this.lastRange) return;
+      if (range !== this.lastRange) this.buildTicks(limits);
+      const angle = DIAL.start + (temp - limits.min) / (limits.max - limits.min) * (DIAL.end - DIAL.start);
+      const previous=this.lastTemperature;
+      this.animateTo(angle, previous === null || !power);
+      this.readout.textContent = temp;
+      if (previous !== null && power && temp !== previous) this.changeFeedback(temp-previous);
+      for (const tick of this.ticks.children) tick.classList.toggle('selected', Number(tick.dataset.temp)===temp);
+      this.element.setAttribute('aria-valuenow', String(temp));
+      this.element.setAttribute('aria-valuemin', String(limits.min));
+      this.element.setAttribute('aria-valuemax', String(limits.max));
+      this.element.setAttribute('aria-valuetext', `${temp} 摄氏度`);
+      this.lastTemperature = temp;
+      this.lastRange = range;
+    }
+  }
+
+  // 连续体积雾使用 GPU 域扭曲噪声，作为气流的柔和底层；不支持 WebGL 时直接由流线承担画面。
+  class FlowVolume {
+    constructor() {
+      this.canvas = document.createElement('canvas');
+      this.gl = this.canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, preserveDrawingBuffer: true });
+      this.ready = false;
+      if (!this.gl) return;
+      const gl = this.gl;
+      const compile = (type, source) => {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source); gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          const error = gl.getShaderInfoLog(shader); gl.deleteShader(shader); throw new Error(error);
+        }
+        return shader;
+      };
+      try {
+        this.vertex = compile(gl.VERTEX_SHADER, 'attribute vec2 position;void main(){gl_Position=vec4(position,0.,1.);}');
+        this.fragment = compile(gl.FRAGMENT_SHADER, `
+          precision highp float;
+          uniform vec2 resolution, size;
+          uniform vec3 emitter, primary, secondary;
+          uniform float time, speed, travel, pitch, reach, kind, coolMist;
+          float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+          float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+            return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
+          float fbm(vec2 p){float n=0.,a=.53;mat2 r=mat2(.86,.51,-.51,.86);
+            for(int i=0;i<4;i++){n+=a*noise(p);p=r*p*2.03+vec2(17.8,9.2);a*=.48;}return n;}
+
+          void main(){
+            vec2 pos=vec2(gl_FragCoord.x/resolution.x,(1.-gl_FragCoord.y/resolution.y))*size;
+            float dist=pos.y-emitter.z;
+            // 风程不能超过画布可用高度，否则窗口较矮时底部会出现一条硬截断线。
+            float limit=min(reach,max(24.,size.y-emitter.z));
+            if(dist<0.||dist>limit){gl_FragColor=vec4(0.);return;}
+            float depth=clamp(dist/max(limit,1.),0.,1.);
+            float strength=clamp((speed-86.)/274.,0.,1.);
+            float center=(emitter.x+emitter.y)*.5;
+            float halfWidth=max(1.,(emitter.y-emitter.x)*.5);
+
+            // 整股气流缓慢摆动，越靠下游摆幅越大。
+            float sway=(fbm(vec2(depth*2.3+7.3,travel*.0034))-.5)*(18.+depth*depth*72.);
+            float x=pos.x-center-sway;
+
+            // 柔和扩散锥：风口处贴合出风口，下游略微张开。
+            float widen=reach*(.12+.08*cos(radians(pitch)));
+            float spread=halfWidth+widen*depth;
+            float side=abs(x)/max(spread,1.);
+
+            // 不规则涡瓣边缘。
+            float erosion=fbm(vec2(x*.0105+travel*.0011,dist*.0068));
+            float sideE=side+(erosion-.5)*(.32+.25*depth);
+            float body=1.-smoothstep(.55,1.02,sideE);
+            body*=smoothstep(0.,22.,dist);
+
+            // 只有两层大尺度噪声：雾面保持平滑连续，细节交给上面的流线层。
+            vec2 drift=vec2(0.,-travel*.0036);
+            float big=fbm(vec2(x*.0048+2.3,dist*.0026)+drift);
+            float mid=fbm(vec2(x*.0120-4.1,dist*.0058)+drift*1.9);
+            float mass=smoothstep(.38,.72,big*.60+mid*.40);
+            float density=body*(.22+.78*mass);
+            density*=smoothstep(0.,.05,depth);
+            density*=1.-smoothstep(.62,.985,min(1.,depth+(mid-.5)*.20));
+            density*=1.-smoothstep(.90,1.,depth);
+
+            float base=.105;
+            if(coolMist>.5) base=.128;
+            else if(kind>.5&&kind<1.5) base=.128;
+            else if(kind>1.5&&kind<2.5) base=.098;
+            else if(kind>2.5&&kind<3.5) base=.092;
+            float alpha=density*base*(1.+strength*.30);
+            vec3 color=mix(primary,secondary,smoothstep(.34,.74,mid));
+            color=mix(color,vec3(.97,1.,1.),smoothstep(.55,.9,mass)*(coolMist>.5?.32:.18));
+            gl_FragColor=vec4(color*alpha,alpha);
+          }`);
+        this.program = gl.createProgram();
+        gl.attachShader(this.program, this.vertex); gl.attachShader(this.program, this.fragment); gl.linkProgram(this.program);
+        if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(this.program));
+        this.buffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+        gl.useProgram(this.program);
+        const position = gl.getAttribLocation(this.program, 'position');
+        gl.enableVertexAttribArray(position); gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+        this.uniforms = Object.fromEntries(['resolution','size','emitter','primary','secondary','time','speed','travel','pitch','reach','kind','coolMist']
+          .map(name => [name, gl.getUniformLocation(this.program, name)]));
+        gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
+        this.ready = true;
+      } catch { this.dispose(); }
+      this.canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); this.ready = false; });
+      this.canvas.addEventListener('webglcontextrestored', () => { this.ready = false; });
+    }
+
+    render(width, height, emitter, flow) {
+      if (!this.ready || this.gl.isContextLost()) return false;
+      const gl = this.gl, u = this.uniforms;
+      const scale = Math.min(1.6, Math.sqrt(900000 / (width * height)));
+      const w = Math.max(1, Math.round(width * scale)), h = Math.max(1, Math.round(height * scale));
+      if (this.canvas.width !== w || this.canvas.height !== h) { this.canvas.width = w; this.canvas.height = h; }
+      gl.viewport(0, 0, w, h); gl.useProgram(this.program);
+      gl.uniform2f(u.resolution, w, h); gl.uniform2f(u.size, width, height);
+      gl.uniform3f(u.emitter, emitter.left, emitter.right, emitter.y);
+      gl.uniform3fv(u.primary, flow.profile.primary.split(',').map(v => Number(v) / 255));
+      gl.uniform3fv(u.secondary, flow.profile.secondary.split(',').map(v => Number(v) / 255));
+      for (const name of ['time','speed','travel','pitch','reach']) gl.uniform1f(u[name], flow[name]);
+      gl.uniform1f(u.kind, { cool: 0, heat: 1, dry: 2, fan: 3, auto: 4 }[flow.mode] ?? 4);
+      gl.uniform1f(u.coolMist, flow.mode === 'cool' ? 1 : 0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      return true;
+    }
+
+    dispose() {
+      const gl = this.gl;
+      if (gl) {
+        if (this.buffer) gl.deleteBuffer(this.buffer);
+        if (this.program) gl.deleteProgram(this.program);
+        if (this.vertex) gl.deleteShader(this.vertex);
+        if (this.fragment) gl.deleteShader(this.fragment);
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+      }
+      this.ready = false;
+    }
+  }
+
+  // 气流主体：一组宽而渐细的柔和流线。每帧按漂移量重算中心线，低分辨率绘制后放大，
+  // 得到连续、有厚度、带卷曲的丝带状气流，而不是一根根细线或一团团斑点。
+  class FlowStreams {
+    constructor() {
+      // 两层：veil 是宽而重的雾体（合成时强模糊），canvas 是少量清晰的流线。
+      this.veil = document.createElement('canvas');
+      this.veilContext = this.veil.getContext('2d');
+      this.canvas = document.createElement('canvas');
+      this.context = this.canvas.getContext('2d');
+      this.width = 0;
+      this.height = 0;
+      this.points = [];
+      this.factor = .62;
+      this.cache = new Map();
+    }
+
+    resize(width, height, deviceScale) {
+      this.width = width;
+      this.height = height;
+      const w = Math.max(1, Math.round(width * deviceScale * this.factor));
+      const h = Math.max(1, Math.round(height * deviceScale * this.factor));
+      for (const canvas of [this.canvas, this.veil]) {
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+      }
+      for (const g of [this.context, this.veilContext]) {
+        g.setTransform(w / width, 0, 0, h / height, 0, 0);
+        g.imageSmoothingEnabled = true;
+        g.imageSmoothingQuality = 'high';
+      }
+    }
+
+    // 每条气流片的稳定个性：位置、宽窄、明暗、速度、波长、相位、漂移。
+    lane(key, lane) {
+      const id = key + ':' + lane;
+      const cached = this.cache.get(id);
+      if (cached) return cached;
+      const r = salt => {
+        const x = Math.sin((lane + 1) * salt + (key === 'lines' ? 7.31 : 17.93)) * 43758.5453;
+        return x - Math.floor(x);
+      };
+      const r1 = r(12.9898), r2 = r(78.233), r3 = r(39.425), r4 = r(93.989), r5 = r(53.717);
+      const params = {
+        position: (lane + .5 + (r1 - .5) * .62) / Math.max(2, this._count || 6),
+        width: .60 + r2 * 1.00,
+        alpha: .55 + r3 * .95,
+        length: .60 + r4 * .48,
+        speed: .72 + r5 * .58,
+        curl: .68 + r1 * .95,
+        drift: (r5 - .5) * 13,
+        phase1: r1 * 6.283,
+        phase2: r3 * 6.283,
+        phase3: r5 * 6.283,
+        lambda1: .78 + r2 * .48,
+        lambda2: .76 + r4 * .52,
+        lambda3: .74 + r3 * .6
+      };
+      this.cache.set(id, params);
+      return params;
+    }
+
+    draw(emitter, flow, strength) {
+      const stream = flow.profile.stream;
+      if (!stream) return;
+      // 雾体：很宽、彼此重叠，合成时整体强模糊，只留下连续且不均匀的体积。
+      this.layer(this.veilContext, emitter, flow, strength, {
+        ...stream.veil, key: 'veil', line: false, speed: .72, lengthScale: 1.08, curlScale: .85
+      });
+      // 流线：细、弯曲明显、速度各异，提供“空气在动”的方向感。
+      this.layer(this.context, emitter, flow, strength, {
+        ...stream.lines, key: 'lines', line: true, speed: 1, lengthScale: 1, curlScale: 1.32
+      });
+      // 阵风：少量更快、更短的细线，让气流偶尔“窜”一下。
+      this.layer(this.context, emitter, flow, strength, {
+        ...stream.lines, key: 'gust', clear: false, line: true, speed: 1.75, lengthScale: .62, curlScale: 1.15,
+        count: Math.max(2, Math.round(stream.lines.count * .35)),
+        width: stream.lines.width * .5, alpha: stream.lines.alpha * .62
+      });
+    }
+
+    layer(g, emitter, flow, strength, options) {
+      const stream = flow.profile.stream;
+      if (options.clear !== false) g.clearRect(0, 0, this.width, this.height);
+      const span = emitter.right - emitter.left;
+      const count = Math.max(1, options.count || 1);
+      this._count = count;
+      const steps = options.line ? 42 : 34;
+      const points = this.points;
+      const pitch = flow.pitch * Math.PI / 180;
+      const downness = clamp(Math.sin(pitch), .2, 1);
+      const speedNorm = clamp((flow.speed - FAN_SPEED.low) / (FAN_SPEED.high - FAN_SPEED.low), 0, 1);
+      // 全局风况：三个互不整除的慢周期叠加，形成看不出循环的阵风。
+      const now = flow.time;
+      const gust = clamp(.5 + .25 * Math.sin(now * 1.07 + 1.7)
+        + .16 * Math.sin(now * .47 + 4.1) + .09 * Math.sin(now * .19 + 2.3), .16, .96);
+      const windShift = (Math.sin(now * .19 + .8) * 8 + Math.sin(now * .083 + 2.1) * 5) * clamp(span / 900, .5, 1.2);
+      // 平吹更散更短，下吹更聚更长；风速越快越长、扰动越明显。
+      const length = Math.max(40, flow.reach * (stream.length || 1) * options.lengthScale
+        * (.80 + .28 * downness) * (1 + speedNorm * .16) * (.93 + .12 * gust));
+      const widen = .55 + .85 * Math.cos(pitch);
+      const boost = 1 + strength * .26;
+      // 窄窗时出风口变窄：扰动同步收小，否则流线会交叉成乱麻。
+      const breadth = clamp(span / 900, .45, 1.15);
+      for (let lane = 0; lane < count; lane++) {
+        const profile = this.lane(options.key, lane);
+        const travel = flow.travel * options.speed * profile.speed;
+        const t = now * profile.speed;
+        // 每条气流片自己的呼吸：不会被整排同时吹亮或吹灭。
+        const laneGust = clamp(.72 + .34 * Math.sin(t * 1.21 + profile.phase1)
+          + .22 * Math.sin(t * .53 + profile.phase2), .35, 1.25);
+        // 每条带的横向位置缓慢漂移、宽度缓慢呼吸，避免固定竖棱。
+        const position = clamp(profile.position + .030 * Math.sin(t * .21 + profile.phase2), .02, .98);
+        const breath = .84 + .30 * Math.sin(t * .90 + profile.phase3);
+        const width = (options.width || stream.veil.width) * profile.width * breath;
+        const edgeFade = options.line ? 1 : .68 + .32 * Math.sin(Math.PI * position);
+        const alpha = (options.alpha || stream.veil.alpha) * profile.alpha
+          * (.78 + .34 * laneGust) * boost * edgeFade;
+        const curl = (stream.curl || 1) * options.curlScale * profile.curl;
+        const laneLength = length * profile.length * (.90 + .14 * laneGust);
+        const fanRate = (stream.spread || .1) * widen;
+        const drift = profile.drift * breadth * Math.sin(t * .26 + profile.phase2);
+        let total = 0;
+        for (let step = 0; step <= steps; step++) {
+          const u = step / steps, distance = u * laneLength;
+          // 四段不同尺度的扰动：大摆动、卷曲、细颤、以及每条的慢漂移。
+          const meander = Math.sin(distance / (215 * profile.lambda1) - travel / 124 + profile.phase1)
+            * curl * breadth * (4 + distance * .155);
+          const curl2 = Math.sin(distance / (92 * profile.lambda2) + travel / 76 + profile.phase2)
+            * curl * breadth * (2 + distance * .065);
+          const fine = Math.sin(distance / (41 * profile.lambda3) + travel / 37 + profile.phase3)
+            * breadth * (options.line ? 3.4 : 1.9) * (.45 + speedNorm * 1.05) * (1 + distance * .014);
+          const fan = (position - .5) * fanRate * distance
+            + Math.sin(distance / 120 + profile.phase3) * fanRate * distance * .22;
+          const point = points[total] || (points[total] = {});
+          point.x = emitter.left + span * position + fan + meander + curl2 + fine + drift + windShift;
+          point.y = emitter.y + distance;
+          const taper = 1 - (options.line ? .50 : .30) * Math.min(1, Math.max(0, (u - .78) / .22));
+          // 沿程轻微鼓包/收束，避免每条都是同一种平滑棱形。
+          const bulge = .88 + .14 * Math.sin(distance / 138 - travel / 320 + profile.phase3);
+          point.w = width * (.64 + .36 * Math.sin(Math.PI * Math.min(1, u * .9))) * taper * bulge;
+          total++;
+        }
+        for (let i = 0; i < total; i++) {
+          const before = points[Math.max(0, i - 1)], after = points[Math.min(total - 1, i + 1)];
+          const dx = after.x - before.x, dy = after.y - before.y, normal = Math.max(.001, Math.hypot(dx, dy));
+          points[i].nx = -dy / normal;
+          points[i].ny = dx / normal;
+        }
+        const first = points[0], last = points[total - 1];
+        const gradient = g.createLinearGradient(0, first.y, 0, last.y);
+        if (options.line) {
+          const color = stream.lines.color || '242,254,255';
+          gradient.addColorStop(0, `rgba(${color},0)`);
+          gradient.addColorStop(.08, `rgba(${color},${(alpha * .55).toFixed(3)})`);
+          gradient.addColorStop(.42, `rgba(${color},${alpha.toFixed(3)})`);
+          gradient.addColorStop(.78, `rgba(${color},${(alpha * .45).toFixed(3)})`);
+          gradient.addColorStop(1, `rgba(${color},0)`);
+        } else {
+          gradient.addColorStop(0, `rgba(${flow.profile.secondary},0)`);
+          gradient.addColorStop(.06, `rgba(${flow.profile.secondary},${(alpha * .55).toFixed(3)})`);
+          gradient.addColorStop(.22, `rgba(${flow.profile.primary},${(alpha * .95).toFixed(3)})`);
+          gradient.addColorStop(.55, `rgba(${flow.profile.primary},${alpha.toFixed(3)})`);
+          gradient.addColorStop(.86, `rgba(${flow.profile.secondary},${(alpha * .30).toFixed(3)})`);
+          gradient.addColorStop(1, `rgba(${flow.profile.secondary},0)`);
+        }
+        g.fillStyle = gradient;
+        g.globalAlpha = 1;
+        this.contour(points, 1, total, g);
+        g.fill();
+        if (options.line) {
+          g.globalAlpha = .18;
+          g.fillStyle = `rgba(${stream.lines.color || '242,254,255'},1)`;
+          this.contour(points, .20, total, g);
+          g.fill();
+          g.globalAlpha = 1;
+        }
+      }
+    }
+
+    contour(points, width, count, g) {
+      const last = count - 1;
+      g.beginPath();
+      g.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < last; i++) {
+        const a = points[i], b = points[i + 1];
+        const ax = a.x + a.nx * a.w * width, ay = a.y + a.ny * a.w * width;
+        const bx = b.x + b.nx * b.w * width, by = b.y + b.ny * b.w * width;
+        g.quadraticCurveTo(ax, ay, (ax + bx) / 2, (ay + by) / 2);
+      }
+      g.lineTo(points[last].x, points[last].y);
+      for (let i = last - 1; i > 0; i--) {
+        const a = points[i], b = points[i - 1];
+        const ax = a.x - a.nx * a.w * width, ay = a.y - a.ny * a.w * width;
+        const bx = b.x - b.nx * b.w * width, by = b.y - b.ny * b.w * width;
+        g.quadraticCurveTo(ax, ay, (ax + bx) / 2, (ay + by) / 2);
+      }
+      g.closePath();
+    }
+
+    dispose() {
+      this.canvas.width = this.canvas.height = 0;
+      this.veil.width = this.veil.height = 0;
+      this.points.length = 0;
+      this.cache.clear();
+    }
+  }
+
+  // 绘制只读取模拟状态：体积雾打底，流线塑形，稀疏微光点缀。
+  class AirflowRenderer {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.context = canvas.getContext('2d');
+      if (!this.context) throw new Error('Canvas 2D is unavailable');
+      this.width = this.height = 0;
+      this.volume = new FlowVolume();
+      this.streams = new FlowStreams();
+    }
+
+    resize(width, height, dpr, resetBitmap, scale = 1) {
+      this.width = width;
+      this.height = height;
+      if (!resetBitmap) return;
+      this.canvas.width = Math.round(width * scale * dpr);
+      this.canvas.height = Math.round(height * scale * dpr);
+      this.context.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+      this.context.imageSmoothingEnabled = true;
+      this.context.imageSmoothingQuality = 'high';
+      this.streams.resize(width, height, dpr * scale);
+      this.dissolve = null;
+    }
+
+    // 底边溶解：用缓慢起伏的噪声让气流自然散开，而不是一条水平渐隐线。
+    ensureDissolve() {
+      if (this.dissolve) return;
+      const hash = (x, y, seed) => {
+        let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(seed, 1274126177);
+        h = Math.imul(h ^ h >>> 13, 1274126177);
+        return ((h ^ h >>> 16) >>> 0) / 4294967295;
+      };
+      const noise = (x, y, seed) => {
+        const ix = Math.floor(x), iy = Math.floor(y);
+        let fx = x - ix, fy = y - iy;
+        fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+        const a = hash(ix, iy, seed), b = hash(ix + 1, iy, seed);
+        const c = hash(ix, iy + 1, seed), d = hash(ix + 1, iy + 1, seed);
+        return (a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy;
+      };
+      const width = 192, height = 96;
+      const surface = document.createElement('canvas');
+      surface.width = width; surface.height = height;
+      const g = surface.getContext('2d'), bitmap = g.createImageData(width, height);
+      for (let y = 0; y < height; y++) {
+        const v = y / (height - 1);
+        for (let x = 0; x < width; x++) {
+          const u = x / (width - 1);
+          const n = noise(u * 6.4, v * 3.8, 5) * .55 + noise(u * 17, v * 8, 11) * .45;
+          const ramp = v * v * (1.5 - .5 * v);
+          const erase = clamp((n * .74 + ramp - .34) * 1.5, 0, 1);
+          const i = (y * width + x) * 4;
+          bitmap.data[i] = bitmap.data[i + 1] = bitmap.data[i + 2] = 255;
+          bitmap.data[i + 3] = Math.round(erase * 255);
+        }
+      }
+      g.putImageData(bitmap, 0, 0);
+      this.dissolve = surface;
+    }
+
+    clear() {
+      this.context.clearRect(0, 0, this.width, this.height);
+    }
+
+    draw(particles, emitter, flow) {
+      this.clear();
+      const g = this.context;
+      this.strength = flow ? clamp((flow.speed - FAN_SPEED.low) / (FAN_SPEED.high - FAN_SPEED.low), 0, 1) : 0;
+      const continuous = flow && this.volume.render(this.width, this.height, emitter, flow);
+      if (continuous) g.drawImage(this.volume.canvas, 0, 0, this.width, this.height);
+      if (flow && flow.profile.stream) {
+        this.streams.draw(emitter, flow, this.strength);
+        const blur = flow.profile.stream.blur || { veil: 15, line: 1.2 };
+        g.save();
+        // 雾体强模糊成连续体积，流线只轻微柔化，保留方向感。
+        g.filter = `blur(${blur.veil}px)`;
+        g.drawImage(this.streams.veil, 0, 0, this.width, this.height);
+        g.filter = `blur(${blur.line}px)`;
+        g.drawImage(this.streams.canvas, 0, 0, this.width, this.height);
+        g.filter = 'none';
+        g.restore();
+      }
+      // 稀疏微光：只有少量亮点，按远近分两遍绘制。
+      for (const layer of [0, 1]) {
+        for (const p of particles) {
+          if (((p.layer >= .5) ? 1 : 0) !== layer) continue;
+          const depth = clamp((p.y - emitter.y) / p.reach, 0, 1);
+          const alpha = this.opacity(p, emitter);
+          if (alpha < .004) continue;
+          this.drawMark(p, depth, alpha);
+        }
+      }
+      g.globalAlpha = 1;
+      this.ensureDissolve();
+      const end = Math.min(this.height * .22, this.height - 2);
+      g.globalCompositeOperation = 'destination-out';
+      g.drawImage(this.dissolve, 0, this.height - end, this.width, end);
+      g.globalCompositeOperation = 'source-over';
+    }
+
+    opacity(p, emitter) {
+      const depth = clamp((p.y - emitter.y) / p.reach, 0, 1);
+      const inlet = 1 - Math.exp(-p.age * 5);
+      const fade = Math.pow(1 - depth, p.profile.fade) * clamp((p.lifetime - p.age) / .8, 0, 1);
+      const edge = clamp(Math.min(p.x, this.width - p.x) / 40, 0, 1);
+      return p.alpha * inlet * fade * edge;
+    }
+
+    drawMark(p, depth, alpha) {
+      const g = this.context;
+      const size = p.size * (p.mode === 'dry' ? 1 - depth * .55 : 1);
+      const shimmer = .30 + .70 * Math.pow(Math.max(0, Math.sin(p.phase + p.age * (1.7 + this.strength * 3))), 3);
+      g.save();
+      g.translate(p.x, p.y);
+      g.rotate(p.phase + p.age * p.turn);
+      g.globalAlpha = alpha * shimmer;
+      const glow = g.createRadialGradient(0, 0, 0, 0, 0, size * 1.8);
+      glow.addColorStop(0, `rgba(${p.profile.highlight},.85)`);
+      glow.addColorStop(.30, `rgba(${p.profile.secondary},.45)`);
+      glow.addColorStop(1, `rgba(${p.profile.primary},0)`);
+      g.fillStyle = glow;
+      g.fillRect(-size * 1.8, -size * 1.8, size * 3.6, size * 3.6);
+      g.restore();
+    }
+
+    dispose() {
+      this.clear();
+      this.volume.dispose();
+      this.streams.dispose();
+      if (this.dissolve) { this.dissolve.width = this.dissolve.height = 0; this.dissolve = null; }
+    }
+  }
+
+  // 固定步长模拟；导风板的角度逐渐传入流线与微光，保留已经吹出的尾迹。
+  class AirflowEngine {
+    constructor({ canvas, machine, outlet, louver, getState, getClimate, isStatic }) {
+      Object.assign(this, { canvas, machine, outlet, louver, getState, getClimate, isStatic });
+      this.renderer = new AirflowRenderer(canvas);
+      this.state = getState();
+      this.width = this.height = 0;
+      this.emitter = { left: 0, right: 0, y: 0 };
+      this.particles = [];
+      this.velocity = { vx: 0, vy: 0 };
+      this.time = this.credit = this.sequence = 0;
+      this.travel = 0;
+      this.seed = SIMULATION.seed;
+      this.angle = DIRECTION_PITCH.down;
+      this.fixedAngle = this.angle;
+      this.speed = 132;
+      this.direction = this.mode = '';
+      this.swingStart = this.swingOffset = 0;
+      this.raf = this.lastFrame = null;
+      this.accumulator = 0;
+      this.disposed = false;
+      this.visible = true;
+      this.lastLouverGeometry = '';
+      this.tick = now => this.frame(now);
+      this.onResize = () => {
+        if (this.resize() && this.state.power && this.profile && this.isStatic()) this.staticFrame();
+      };
+      if (typeof ResizeObserver !== 'undefined') {
+        this.observer = new ResizeObserver(this.onResize);
+        this.observer.observe(canvas);
+        this.observer.observe(machine);
+      }
+      // DPR 变化未必改变 CSS 尺寸，因此保留窗口 resize 监听。
+      window.addEventListener('resize', this.onResize);
+      this.resize();
+    }
+
+    random() {
+      this.seed = (Math.imul(this.seed, 1664525) + 1013904223) >>> 0;
+      return this.seed / 4294967296;
+    }
+
+    resize() {
+      if (this.disposed) return false;
+      const machine = this.machine.getBoundingClientRect();
+      const outlet = this.outlet.getBoundingClientRect();
+      // 在统一的设计坐标中模拟，让风速、粒子大小和扫风幅度一起缩放。
+      const designHeight = Number(getComputedStyle(this.machine).getPropertyValue('--design-height')) || 260;
+      const scale = Math.max(.1, machine.height / designHeight);
+      const face = this.machine.querySelector('.face').getBoundingClientRect();
+      const overlap = -(machine.bottom - face.bottom + 4 * scale) + 'px';
+      if (overlap !== this.overlap) {
+        this.canvas.style.setProperty('--air-overlap', overlap);
+        this.overlap = overlap;
+      }
+      const rect = this.canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return false;
+      const dpr = Math.min(devicePixelRatio || 1, SIMULATION.maxDpr, Math.sqrt(8000000 / (rect.width * rect.height)));
+      const width = rect.width / scale, height = rect.height / scale;
+      const changed = Math.abs(this.width - width) > .5 || Math.abs(this.height - height) > .5 || this.dpr !== dpr || Math.abs((this.scale || 0) - scale) > .0001;
+      this.width = width;
+      this.height = height;
+      this.dpr = dpr;
+      this.scale = scale;
+      const inset = Math.max(7, outlet.width / scale * .013);
+      this.emitter.left = clamp((outlet.left - rect.left) / scale + inset, 2, this.width - 2);
+      this.emitter.right = clamp((outlet.right - rect.left) / scale - inset, 2, this.width - 2);
+      this.emitter.y = Math.max(0, (outlet.bottom - rect.top) / scale - 2);
+      this.renderer.resize(width, height, dpr, changed, scale);
+      if (changed) this.credit = 0;
+      return changed;
+    }
+
+    updatePalette() {
+      if (this.mode === this.state.mode) return;
+      this.mode = this.state.mode;
+      this.profile = WIND_PROFILES[this.mode];
+      if (!this.profile.markAlpha) this.particles.length = 0;
+      for (const p of this.particles) p.lifetime = Math.min(p.lifetime, p.age + .4);
+    }
+
+    targetSpeed() {
+      const { speed, mode, temp } = this.state;
+      if (speed !== 'auto') return FAN_SPEED[speed];
+      if (mode === 'dry') return 112;
+      if (mode === 'fan') return 142;
+      const room = this.getClimate().temperature;
+      return Number.isFinite(room) ? clamp(124 + Math.abs(room - temp) * 8, 124, 174) : 124;
+    }
+
+    targetAngle(time) {
+      if (this.direction === 'fixed') return this.fixedAngle;
+      if (this.direction === 'swing') {
+        return SWING.center + SWING.amplitude * Math.cos(this.swingOffset + (time - this.swingStart) * 2 * Math.PI / SWING.period);
+      }
+      return DIRECTION_PITCH[this.direction];
+    }
+
+    reach(pitch) {
+      return (this.height - this.emitter.y) * clamp(.60 + this.speed / 430, .78, 1.38)
+        * (.65 + .45 * Math.sin(pitch * Math.PI / 180));
+    }
+
+    // 微光跟随同一股气流的速度场，因此会沿着流线的 S 形路径飘动。
+    field(x, y, emissionPitch = this.angle) {
+      const distance = Math.max(0, y - this.emitter.y);
+      const depth = clamp(distance / (this.height - this.emitter.y), 0, 1.3);
+      const pitch = emissionPitch * Math.PI / 180;
+      const center = (this.emitter.left + this.emitter.right) / 2;
+      const half = Math.max(1, (this.emitter.right - this.emitter.left) / 2);
+      const position = clamp((x - center) / (half + distance * .12), -1.3, 1.3);
+      const jet = this.speed / Math.sqrt(1 + distance / 190);
+      const spread = Math.cos(pitch) * .72 * (1 - Math.exp(-distance / 24)) * this.profile.spread;
+      const thermal = this.mode === 'heat' ? 1 - .20 * depth * depth
+        : (this.mode === 'cool' || this.mode === 'dry') ? 1 + .06 * depth : 1;
+      const pulse = 1 + .018 * Math.sin(this.time * .94);
+      let vx = position * jet * spread;
+      let vy = jet * (.22 + .78 * Math.sin(pitch)) * thermal * pulse;
+      const mix = 1 - Math.exp(-distance / 75);
+      const advection = this.travel / 185;
+      const a = x / 83 + advection * .32, b = distance / 83 - advection * .56;
+      const c = x / 39 - advection * .28, e = distance / 39 + advection * .39;
+      const fine = x / 19 + distance / 31 - advection * .62;
+      const turbulence = (4 + this.speed * .072) * mix * this.profile.turbulence;
+      vx += turbulence * (Math.sin(a) * Math.cos(b) + .42 * Math.sin(c) * Math.cos(e) + .12 * Math.sin(fine));
+      vy -= turbulence * (Math.cos(a) * Math.sin(b) + .42 * Math.cos(c) * Math.sin(e));
+      // 整股气流一起缓慢摆动，和流线共用同一条摆动相位。
+      const sway = (Math.sin(distance / 148 - this.travel / 268 + 1.1) * (5 + this.speed * .06)
+        + Math.sin(distance / 73 + this.travel / 172) * (2 + this.speed * .030))
+        * mix * (this.profile.sway || 1);
+      vx += sway;
+      this.velocity.vx = vx;
+      this.velocity.vy = Math.max(24, vy);
+      return this.velocity;
+    }
+
+    spawn() {
+      const position = ((this.sequence++ * .61803398875) + this.random() * .07) % 1;
+      const x = this.emitter.left + position * (this.emitter.right - this.emitter.left);
+      const y = this.emitter.y + this.random() * 2;
+      const velocity = this.field(x, y);
+      const profile = this.profile;
+      this.particles.push({
+        x, y, vx: velocity.vx, vy: velocity.vy, pitch: this.angle, profile,
+        age: 0, lifetime: 1.2 + this.random() * 1.8, mode: this.mode,
+        alpha: profile.markAlpha * (.55 + this.random() * .45),
+        size: profile.markSize[0] + this.random() * profile.markSize[1],
+        phase: this.random() * Math.PI * 2, turn: (this.random() - .5) * .8,
+        layer: this.random(), reach: this.reach(this.angle) * profile.reach
+      });
+    }
+
+    advance(dt) {
+      if (!this.width || !this.height) return;
+      this.time += dt;
+      this.angle += (this.targetAngle(this.time) - this.angle) * (1 - Math.exp(-dt * 5));
+      this.speed += (this.targetSpeed() - this.speed) * (1 - Math.exp(-dt * 2.2));
+      this.travel += this.speed * dt;
+      const density = clamp((this.emitter.right - this.emitter.left) / 760, .42, 1.08);
+      if (this.profile.markAlpha) {
+        this.credit += (9 + this.speed * .07) * density * this.profile.emission * dt;
+        while (this.credit >= 1) {
+          if (this.particles.length < 180) this.spawn();
+          this.credit -= 1;
+        }
+      }
+      const response = 1 - Math.exp(-dt * 6);
+      let alive = 0;
+      for (const p of this.particles) {
+        p.age += dt;
+        const distance = Math.max(0, p.y - this.emitter.y);
+        p.pitch += (this.angle - p.pitch) * (1 - Math.exp(-dt * 5 / (1 + distance / 70)));
+        const velocity = this.field(p.x, p.y, p.pitch);
+        p.vx += (velocity.vx - p.vx) * response;
+        p.vy += (velocity.vy - p.vy) * response;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.reach = this.reach(p.pitch) * p.profile.reach;
+        if (p.age >= p.lifetime || p.y > Math.min(this.height + 20, this.emitter.y + p.reach) || p.x < -20 || p.x > this.width + 20) continue;
+        this.particles[alive++] = p;
+      }
+      this.particles.length = alive;
+    }
+
+    draw() {
+      this.renderer.draw(this.particles, this.emitter, { time: this.time, speed: this.speed, travel: this.travel,
+        pitch: this.angle, reach: this.reach(this.angle), mode: this.mode, profile: this.profile });
+      this.setLouver(this.angle);
+    }
+
+    setLouver(pitch) {
+      // 正面投影只改变开口内的高度和位置，扫风极限也不越过出风口。
+      const opening = pitch === null ? null : clamp((pitch - 8) / 78, 0, 1);
+      const top = opening === null ? 0 : 10 + opening * 16;
+      const height = opening === null ? 100 : 36 + opening * 30;
+      const geometry = `${top.toFixed(2)}:${height.toFixed(2)}`;
+      if (geometry === this.lastLouverGeometry) return;
+      this.louver.style.setProperty('--vane-top', `${top.toFixed(2)}%`);
+      this.louver.style.setProperty('--vane-height', `${height.toFixed(2)}%`);
+      this.lastLouverGeometry = geometry;
+    }
+
+    frame(now) {
+      this.raf = null;
+      if (this.disposed || !this.state.power || document.hidden || this.isStatic()) return;
+      const dt = this.lastFrame === null ? SIMULATION.step : clamp((now - this.lastFrame) / 1000, 0, SIMULATION.maxFrameDelta);
+      this.lastFrame = now;
+      this.accumulator += dt;
+      while (this.accumulator >= SIMULATION.step) {
+        this.advance(SIMULATION.step);
+        this.accumulator -= SIMULATION.step;
+      }
+      this.draw();
+      this.raf = requestAnimationFrame(this.tick);
+    }
+
+    start() {
+      if (!this.visible) return;
+      if (this.disposed || !this.state.power || this.raf !== null || document.hidden || this.isStatic()) return;
+      this.resize();
+      this.lastFrame = null;
+      this.accumulator = 0;
+      this.raf = requestAnimationFrame(this.tick);
+    }
+
+    stop() {
+      if (this.raf !== null) cancelAnimationFrame(this.raf);
+      this.raf = this.lastFrame = null;
+      this.accumulator = 0;
+    }
+
+    clear() {
+      this.particles.length = 0;
+      this.credit = this.time = this.travel = 0;
+      this.renderer.clear();
+    }
+
+    staticFrame() {
+      this.stop();
+      this.resize();
+      this.clear();
+      this.seed = SIMULATION.seed;
+      this.sequence = 0;
+      this.swingStart = this.swingOffset = 0;
+      this.angle = this.targetAngle(0);
+      this.speed = this.targetSpeed();
+      for (let i = 0; i < SIMULATION.staticSteps; i++) this.advance(SIMULATION.step);
+      this.draw();
+    }
+
+    sync() {
+      if (this.disposed) return;
+      this.state = this.getState();
+      this.updatePalette();
+      if (this.direction !== this.state.direction) {
+        if (this.state.direction === 'fixed') this.fixedAngle = this.angle;
+        if (this.state.direction === 'swing') {
+          this.swingStart = this.time;
+          this.swingOffset = Math.acos(clamp((this.angle - SWING.center) / SWING.amplitude, -1, 1));
+        }
+        this.direction = this.state.direction;
+      }
+      if (!this.state.power) {
+        this.stop();
+        this.clear();
+        this.direction = '';
+        this.setLouver(null);
+      } else if (!this.visible) this.stop();
+      else if (this.isStatic()) this.staticFrame();
+      else this.start();
+    }
+
+    setVisible(visible) {
+      if (this.visible === visible) return;
+      this.visible = visible;
+      if (visible) { this.resize(); this.sync(); }
+      else this.stop();
+    }
+
+    inspect() {
+      const count = this.particles.length;
+      let vx = 0, vy = 0, downward = 0;
+      for (const p of this.particles) {
+        vx += p.vx; vy += p.vy;
+        if (p.vy > 0) downward++;
+      }
+      const rect = this.canvas.getBoundingClientRect();
+      return {
+        engine: 'layered-flow-v9', volume: this.renderer.volume.ready ? 'gpu' : 'texture', count, running: this.raf !== null,
+        appearance: this.mode === 'cool' ? 'continuous-mist' : 'layered',
+        style: this.profile?.name, palette: this.profile ? [this.profile.primary, this.profile.secondary] : [],
+        stream: this.profile?.stream ?? null,
+        particleKinds: count ? { mark: count } : {},
+        pitch: this.angle, speed: this.speed, speedSetting: this.state.speed,
+        time: this.time, travel: this.travel, reach: this.reach(this.angle),
+        louverAngle: this.angle,
+        emitter: { ...this.emitter, pageY: rect.top + this.emitter.y * this.scale },
+        size: { width: this.width, height: this.height, scale: this.scale, bitmapPixels: this.canvas.width * this.canvas.height },
+        meanVelocity: { x: count ? vx / count : 0, y: count ? vy / count : 0 },
+        downwardFraction: count ? downward / count : 0
+      };
+    }
+
+    dispose() {
+      if (this.disposed) return;
+      this.stop();
+      this.observer?.disconnect();
+      window.removeEventListener('resize', this.onResize);
+      this.clear();
+      this.renderer.dispose();
+      this.disposed = true;
+    }
+  }
+
+  // 合并拖动产生的设置，串行下发；旧响应不能覆盖更新的手势。
+  class DeviceBridge {
+    constructor(app) {
+      this.app = app;
+      this.pending = {};
+      this.revision = 0;
+      this.busy = this.polling = this.disposed = false;
+      this.retries = 0;
+      this.timer = this.messageTimer = null;
+      this.readyAt = 0;
+      this.statusLink = requiredElement('deviceConnection');
+      this.message = requiredElement('deviceMessage');
+      requiredElement('deviceSettings').hidden = false;
+      app.events.signal.addEventListener('abort', () => this.dispose(), { once: true });
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) this.poll();
+      }, { signal: app.events.signal });
+      this.pollTimer = setInterval(() => this.poll(), 3000);
+      this.poll();
+    }
+
+    async request(url, options = {}) {
+      const signal = AbortSignal.any([this.app.events.signal, AbortSignal.timeout(18000)]);
+      const response = await fetch(url, {
+        ...options, signal, cache: 'no-store', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-Aira-Request': '1' }
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        const error = new Error(payload.error?.message || '设备操作未完成');
+        error.code = payload.error?.code;
+        error.snapshot = payload.snapshot;
+        throw error;
+      }
+      return payload;
+    }
+
+    showStatus(snapshot) {
+      this.statusLink.hidden = !!snapshot.connected;
+      this.statusLink.textContent = snapshot.configured ? '设备离线 · 设置' : '连接空调';
+      this.statusLink.title = snapshot.error?.message || '连接米家空调伴侣 2';
+    }
+
+    accept(snapshot, includeState = true) {
+      if (this.disposed) return;
+      this.showStatus(snapshot);
+      this.app.acceptDevice(snapshot, includeState);
+    }
+
+    async poll() {
+      if (this.disposed || document.hidden || this.polling || this.busy || Object.keys(this.pending).length) return;
+      const revision = this.revision;
+      this.polling = true;
+      try {
+        const snapshot = await this.request('/api/status');
+        if (revision === this.revision && !this.busy && !Object.keys(this.pending).length) this.accept(snapshot);
+      } catch {
+        if (revision === this.revision && !this.disposed && !this.busy) this.accept({ connected: false, configured: true });
+      } finally {
+        this.polling = false;
+      }
+    }
+
+    queue(patch) {
+      if (this.disposed) return;
+      this.revision++;
+      if (patch.power === false) this.pending = { power: false };
+      else Object.assign(this.pending, patch);
+      this.readyAt = Date.now() + (patch.power === false ? 0 : 350);
+      this.schedule();
+    }
+
+    schedule() {
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.flush(), Math.max(0, this.readyAt - Date.now()));
+    }
+
+    async setTimer(action, due) {
+      const snapshot = await this.request('/api/timer', { method: 'POST', body: JSON.stringify({ action, due }) });
+      this.accept(snapshot);
+      return snapshot;
+    }
+
+    async clearTimer() {
+      const snapshot = await this.request('/api/timer', { method: 'DELETE', body: '{}' });
+      this.accept(snapshot);
+      return snapshot;
+    }
+
+    async flush() {
+      if (this.disposed || this.busy || !Object.keys(this.pending).length) return;
+      const patch = this.pending, revision = this.revision;
+      this.pending = {};
+      this.busy = true;
+      this.app.elements.scene.setAttribute('aria-busy', 'true');
+      try {
+        const snapshot = await this.request('/api/state', { method: 'PATCH', body: JSON.stringify(patch) });
+        this.retries = 0;
+        this.accept(snapshot, revision === this.revision && !Object.keys(this.pending).length);
+      } catch (error) {
+        if (!this.disposed) {
+          // 轮询正在读取设备时会短暂占锁并返回 device_busy；此时保留设置稍后重试，
+          // 避免刚拖动的温度被直接丢弃。
+          if (error.code === 'device_busy' && (this.retries = (this.retries || 0) + 1) <= 4) {
+            this.pending = Object.assign(patch, this.pending);
+            this.readyAt = Date.now() + 180 + this.retries * 140;
+          } else {
+            this.retries = 0;
+            this.pending = {};
+            clearTimeout(this.timer);
+            this.accept(error.snapshot || { connected: false, configured: true });
+            this.showMessage(error.message === 'Failed to fetch' ? '设备连接中断，请稍后重试' : error.message);
+          }
+        }
+      } finally {
+        this.busy = false;
+        this.app.elements.scene.setAttribute('aria-busy', 'false');
+        if (!this.disposed && Object.keys(this.pending).length) this.schedule();
+      }
+    }
+
+    showMessage(text) {
+      this.message.textContent = text;
+      this.message.hidden = false;
+      clearTimeout(this.messageTimer);
+      this.messageTimer = setTimeout(() => { this.message.hidden = true; }, 4500);
+    }
+
+    dispose() {
+      this.disposed = true;
+      this.pending = {};
+      this.retries = 0;
+      clearInterval(this.pollTimer);
+      clearTimeout(this.timer);
+      clearTimeout(this.messageTimer);
+    }
+  }
+
+  // 主界面下方的定时抽屉：设置/取消定时，倒计时由本机服务执行。
+  class TimerPanel {
+    constructor({ signal, getBridge, isLive }) {
+      this.getBridge = getBridge;
+      this.isLive = isLive;
+      this.root = requiredElement('timerDrawer');
+      this.handle = requiredElement('timerHandle');
+      this.panel = requiredElement('timerPanel');
+      this.summary = requiredElement('timerSummary');
+      this.state = requiredElement('timerState');
+      this.announce = requiredElement('timerAnnounce');
+      this.hint = requiredElement('timerHint');
+      this.startButton = requiredElement('timerStart');
+      this.cancelButton = requiredElement('timerCancel');
+      this.durations = requiredElement('timerDurations');
+      this.clockRow = requiredElement('timerClock');
+      this.timeInput = requiredElement('timerTime');
+      this.actionButtons = [...this.root.querySelectorAll('[data-action]')];
+      this.modeButtons = [...this.root.querySelectorAll('[data-mode]')];
+      this.chips = [...this.durations.querySelectorAll('.timer-chip')];
+      this.action = 'off';
+      this.mode = 'after';
+      this.minutes = 60;
+      this.timer = null;
+      this.configured = false;
+      this.connected = false;
+      this.open = false;
+      this.cancelling = false;
+      this.busy = false;
+      this.notice = null;
+      this.bind(signal);
+      this.tick = setInterval(() => this.renderState(), 1000);
+      this.render();
+    }
+
+    bind(signal) {
+      const listen = (element, type, handler) => element.addEventListener(type, handler, { signal });
+      listen(this.handle, 'click', () => this.setOpen(!this.open));
+      listen(this.root, 'keydown', event => {
+        if (event.key === 'Escape' && this.open) {
+          this.setOpen(false);
+          this.handle.focus();
+        }
+      });
+      for (const button of this.actionButtons) listen(button, 'click', () => this.chooseAction(button.dataset.action));
+      for (const button of this.modeButtons) listen(button, 'click', () => this.chooseMode(button.dataset.mode));
+      for (const chip of this.chips) listen(chip, 'click', () => this.chooseMinutes(Number(chip.dataset.minutes)));
+      listen(this.startButton, 'click', () => this.submit());
+      listen(this.cancelButton, 'click', () => this.cancel());
+    }
+
+    get bridge() {
+      return this.getBridge ? this.getBridge() : null;
+    }
+
+    accept(snapshot) {
+      const previous = this.timer;
+      this.configured = !!snapshot.configured;
+      this.connected = !!(snapshot.connected && snapshot.state);
+      this.timer = snapshot.timer || null;
+      if (previous && !this.timer && !this.cancelling && this.connected) {
+        this.notice = { text: '定时已执行', until: Date.now() + 8000 };
+        this.say('定时已执行');
+      }
+      if (this.timer) this.notice = null;
+      this.render();
+    }
+
+    available() {
+      return this.isLive && this.configured && this.connected;
+    }
+
+    setOpen(open) {
+      this.open = open;
+      this.root.classList.toggle('is-open', open);
+      this.handle.setAttribute('aria-expanded', String(open));
+      this.panel.hidden = !open;
+      if (open && !this.timer) this.syncTimeInput();
+    }
+
+    chooseAction(action) {
+      if (action !== 'off' && action !== 'on') return;
+      this.action = action;
+      this.render();
+    }
+
+    chooseMode(mode) {
+      if (mode !== 'after' && mode !== 'at') return;
+      this.mode = mode;
+      if (mode === 'at' && !this.timer) this.syncTimeInput();
+      this.render();
+    }
+
+    chooseMinutes(minutes) {
+      if (!Number.isFinite(minutes)) return;
+      this.minutes = minutes;
+      this.render();
+    }
+
+    syncTimeInput() {
+      const date = new Date(Date.now() + this.minutes * 60000);
+      date.setSeconds(0, 0);
+      this.timeInput.value = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    }
+
+    targetDue() {
+      if (this.mode === 'after') return Math.floor(Date.now() / 1000) + this.minutes * 60;
+      const [hours, minutes] = (this.timeInput.value || '').split(':').map(Number);
+      if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+      const target = new Date();
+      target.setHours(hours, minutes, 0, 0);
+      if (target.getTime() <= Date.now() + 30000) target.setDate(target.getDate() + 1);
+      return Math.floor(target.getTime() / 1000);
+    }
+
+    async submit() {
+      if (!this.available() || this.busy || !this.bridge) return;
+      const due = this.targetDue();
+      if (!due) {
+        this.notice = { text: '请选择有效的到点时刻', until: Date.now() + 5000, error: true };
+        this.render();
+        return;
+      }
+      this.busy = true;
+      this.render();
+      try {
+        await this.bridge.setTimer(this.action, due);
+        this.notice = null;
+        this.say(`已设置 ${this.format(due - Date.now() / 1000)} 后${this.actionLabel(this.action)}`);
+      } catch (error) {
+        this.notice = { text: error.message || '定时设置失败', until: Date.now() + 6000, error: true };
+        this.say(this.notice.text);
+      } finally {
+        this.busy = false;
+        this.render();
+      }
+    }
+
+    async cancel() {
+      if (!this.timer || this.busy || !this.bridge) return;
+      this.busy = true;
+      this.cancelling = true;
+      this.render();
+      try {
+        await this.bridge.clearTimer();
+        this.notice = null;
+        this.say('已取消定时');
+      } catch (error) {
+        this.notice = { text: error.message || '无法取消定时', until: Date.now() + 6000, error: true };
+        this.say(this.notice.text);
+      } finally {
+        this.busy = false;
+        this.cancelling = false;
+        this.render();
+      }
+    }
+
+    format(seconds) {
+      const total = Math.max(0, Math.ceil(seconds));
+      const hours = Math.floor(total / 3600);
+      const minutes = Math.floor(total % 3600 / 60);
+      const rest = total % 60;
+      if (hours >= 1) return `${hours}:${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
+      return `${minutes}:${String(rest).padStart(2, '0')}`;
+    }
+
+    actionLabel(action) {
+      return action === 'on' ? '开机' : '关机';
+    }
+
+    say(text) {
+      // 只播报状态变化，不随每秒倒计时重复播报。
+      this.announce.textContent = '';
+      this.announce.textContent = text;
+    }
+
+    renderState() {
+      if (this.notice && Date.now() > this.notice.until) this.notice = null;
+      const remaining = this.timer ? this.timer.due - Date.now() / 1000 : 0;
+      let summary = '未设置';
+      let active = false;
+      if (this.notice) {
+        summary = this.notice.text;
+        active = !this.notice.error;
+      } else if (this.timer) {
+        if (this.timer.failed) {
+          summary = '定时执行失败';
+        } else {
+          summary = `${this.format(remaining)} 后${this.actionLabel(this.timer.action)}`;
+          active = true;
+        }
+      } else if (!this.isLive) {
+        summary = '预览模式';
+      } else if (!this.configured) {
+        summary = '未连接';
+      } else if (!this.connected) {
+        summary = '设备离线';
+      }
+      this.summary.textContent = summary;
+      this.summary.classList.toggle('is-active', active);
+      this.state.textContent = this.timer && this.timer.failed ? '定时执行失败' : summary;
+      this.state.classList.toggle('is-error', !!(this.notice && this.notice.error) || !!(this.timer && this.timer.error));
+      if (this.timer) this.cancelButton.hidden = false;
+    }
+
+    render() {
+      for (const button of this.actionButtons) {
+        const on = button.dataset.action === this.action;
+        button.classList.toggle('is-active', on);
+        button.setAttribute('aria-pressed', String(on));
+      }
+      for (const button of this.modeButtons) {
+        const on = button.dataset.mode === this.mode;
+        button.classList.toggle('is-active', on);
+        button.setAttribute('aria-pressed', String(on));
+      }
+      for (const chip of this.chips) chip.classList.toggle('is-active', Number(chip.dataset.minutes) === this.minutes);
+      this.durations.hidden = this.mode !== 'after';
+      this.clockRow.hidden = this.mode !== 'at';
+      const available = this.available();
+      this.startButton.disabled = !available || this.busy;
+      this.cancelButton.hidden = !this.timer;
+      this.cancelButton.disabled = this.busy;
+      this.hint.textContent = !this.isLive
+        ? '连接空调后可设置定时。'
+        : !this.configured
+          ? '请先在设置中连接空调伴侣。'
+          : !this.connected
+            ? '设备离线，恢复连接后可设置定时。'
+            : '到点由本机服务执行，程序保持运行即可（可最小化或悬浮）。';
+      if (this.timer && this.timer.error) this.hint.textContent = this.timer.failed ? this.timer.error : `${this.timer.error}（将自动重试）`;
+      this.renderState();
+    }
+
+    dispose() {
+      clearInterval(this.tick);
+    }
+  }
+
+  // 所有输入都经过同一入口验证，再通知圆环、按钮和风场。
+  class AirConditionerApp {
+    constructor() {
+      this.isLive = location.protocol === 'http:' || location.protocol === 'https:';
+      this.online = !this.isLive;
+      this.temperatureRange = this.isLive ? { min: 16, max: 30 } : TEMPERATURE;
+      this.climate = this.isLive ? { temperature: null, humidity: null } : CLIMATE;
+      this.controlOptions = Object.fromEntries(Object.entries(CONTROLS).map(([key, config]) => [key, config.order]));
+      if (this.isLive) this.controlOptions.direction = ['fixed', 'swing'];
+      this.state = Object.freeze({ ...DEFAULT_STATE, ...(this.isLive ? { power: false, direction: 'fixed' } : {}) });
+      this.previousState = null;
+      this.destroyed = false;
+      this.events = new AbortController();
+      this.motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
+      this.freeze = new URLSearchParams(location.search).get('freeze') === '1';
+      this.reduced = this.motionQuery.matches;
+      document.body.classList.toggle('freeze', this.freeze);
+      this.elements = {
+        power: requiredElement('power'), scene: requiredElement('scene'),
+        dial: requiredElement('dial'), progress: requiredElement('prog'),
+        knob: requiredElement('knob'), readout: requiredElement('bigTemp'),
+        canvas: requiredElement('airCanvas'), louver: requiredElement('louver'),
+        mode: requiredElement('modeControl'), direction: requiredElement('directionControl'),
+        climate: requiredElement('climateReading'), room: requiredElement('roomTemperature'),
+        moisture: requiredElement('roomHumidity'),
+        machine: document.querySelector('.machine'), outlet: document.querySelector('.machine-bottom')
+      };
+      this.controls = Object.entries(CONTROLS).map(([key, config]) => {
+        const button = requiredElement(config.id);
+        const svg = button.querySelector('svg');
+        return { key, config, button, svg, icon: svg.querySelector('use') };
+      });
+      this.dial = new TemperatureDial({
+        element: this.elements.dial, progress: this.elements.progress,
+        knob: this.elements.knob, readout: this.elements.readout,
+        getState: () => ({ ...this.viewState(), power: this.online && this.state.power && Number.isFinite(this.state.temp) }), getLimits: () => this.temperatureRange,
+        onChange: temp => this.update({ temp }), signal: this.events.signal
+      });
+      this.airflow = new AirflowEngine({
+        ...this.elements, getState: () => this.viewState(), getClimate: () => this.climate,
+        isStatic: () => this.freeze || this.reduced
+      });
+      this.timer = new TimerPanel({
+        signal: this.events.signal, isLive: this.isLive, getBridge: () => this.bridge
+      });
+      this.bindEvents();
+      this.render();
+      if (this.isLive) this.bridge = new DeviceBridge(this);
+    }
+
+    viewState() {
+      return { ...this.state, temp: Number.isFinite(this.state.temp) ? this.state.temp : DEFAULT_STATE.temp, power: this.online && this.state.power };
+    }
+
+    acceptDevice(snapshot, includeState = true) {
+      if (this.destroyed) return;
+      this.online = !!(snapshot.connected && snapshot.state);
+      this.climate = {
+        temperature: snapshot.telemetry?.temperature ?? null,
+        humidity: snapshot.telemetry?.humidity ?? null
+      };
+      if (includeState && snapshot.state) this.update(snapshot.state, { device: true });
+      this.timer.accept(snapshot);
+      this.render();
+    }
+
+    bindEvents() {
+      const signal = this.events.signal;
+      this.elements.power.addEventListener('click', () => this.update({ power: !this.state.power }), { signal });
+      for (const { key, config, button } of this.controls) {
+        button.addEventListener('click', () => {
+          const order = this.controlOptions[key];
+          const next = order[(order.indexOf(this.state[key]) + 1) % order.length];
+          this.update({ [key]: next, power: true });
+        }, { signal });
+      }
+      this.motionQuery.addEventListener('change', event => {
+        this.reduced = event.matches;
+        this.airflow.sync();
+      }, { signal });
+      document.addEventListener('visibilitychange', () => {
+        document.body.classList.toggle('page-hidden',document.hidden);
+        if (document.hidden) this.airflow.stop();
+        else this.airflow.sync();
+      }, { signal });
+      window.addEventListener('pagehide', event => {
+        if (event.persisted) this.airflow.stop();
+        else this.destroy();
+      }, { signal });
+      window.addEventListener('pageshow', () => this.airflow.sync(), { signal });
+      window.addEventListener('presentationchange', event => {
+        this.airflow.setVisible(!['bubble','compact'].includes(event.detail.view) && !event.detail.edgeHidden);
+      }, { signal });
+    }
+
+    update(patch, { device = false } = {}) {
+      if (this.destroyed) return;
+      if (this.isLive && !this.online && !device) return;
+      const checked = {};
+      for (const [key, value] of Object.entries(patch)) {
+        if (key === 'temp') {
+          if (device && value === null) { checked.temp = null; continue; }
+          if (typeof value !== 'number' || !Number.isFinite(value)) throw new TypeError('Temperature must be a finite number');
+          checked.temp = clamp(Math.round(value), this.temperatureRange.min, this.temperatureRange.max);
+        } else if (key === 'power') {
+          if (typeof value !== 'boolean') throw new TypeError('Power must be a boolean');
+          checked.power = value;
+        } else if (Object.hasOwn(CONTROLS, key)) {
+          if (!this.controlOptions[key].includes(value)) throw new RangeError(`Invalid ${key}: ${value}`);
+          checked[key] = value;
+        } else {
+          throw new TypeError(`Unknown setting: ${key}`);
+        }
+      }
+      if (!Object.entries(checked).some(([key, value]) => value !== this.state[key])) return;
+      this.state = Object.freeze({ ...this.state, ...checked });
+      this.render();
+      if (this.isLive && !device) this.bridge.queue(checked);
+    }
+
+    render() {
+      const state = this.viewState(), previous = this.previousState;
+      if (!previous || state.mode !== previous.mode) {
+        if (previous) document.body.classList.remove(`mode-${previous.mode}`);
+        document.body.classList.add(`mode-${state.mode}`);
+      }
+      if (!previous || state.power !== previous.power) {
+        document.body.classList.toggle('is-off', !state.power);
+        this.elements.scene.classList.toggle('is-off', !state.power);
+        this.elements.power.classList.toggle('off', !state.power);
+        const label = state.power ? '关机' : '开机';
+        this.elements.power.setAttribute('aria-label', label);
+        this.elements.power.title = label;
+      }
+      document.body.dataset.speed = state.speed;
+      const thermal=state.mode==='heat'?(state.temp-16)/14:(30-state.temp)/14;
+      document.body.style.setProperty('--thermal-level',clamp(thermal,0,1).toFixed(3));
+      for (const { key, config, button, icon, svg } of this.controls) {
+        if (!previous || state[key] !== previous[key]) {
+          const value = state[key], label = config.labels[value];
+          icon.setAttribute('href', `#icon-${key}-${value}`);
+          button.dataset[key] = value;
+          button.title = label;
+          button.setAttribute('aria-label', `${label}，点击切换`);
+          svg.classList.toggle('speed-bars', key === 'speed' && value !== 'auto');
+        }
+      }
+      if (!previous || state.power !== previous.power || state.direction !== previous.direction) {
+        this.elements.mode.classList.toggle('active', state.power);
+        this.elements.direction.classList.toggle('active', state.power && state.direction === 'swing');
+        this.elements.direction.setAttribute('aria-pressed', String(state.direction === 'swing'));
+      }
+      const unknownTarget = this.isLive && (!this.online || !Number.isFinite(this.state.temp));
+      this.dial.render({ ...state, power: state.power && !unknownTarget });
+      this.elements.power.disabled = this.isLive && !this.online;
+      for (const { button } of this.controls) button.disabled = this.isLive && !this.online;
+      this.elements.readout.textContent = unknownTarget ? '—' : state.temp;
+      this.elements.progress.style.visibility = unknownTarget ? 'hidden' : '';
+      this.elements.knob.style.visibility = unknownTarget ? 'hidden' : '';
+      this.elements.dial.setAttribute('aria-valuemin', String(this.temperatureRange.min));
+      this.elements.dial.setAttribute('aria-valuemax', String(this.temperatureRange.max));
+      if (unknownTarget) this.elements.dial.removeAttribute('aria-valuenow');
+      else this.elements.dial.setAttribute('aria-valuenow', String(state.temp));
+      this.elements.dial.setAttribute('aria-valuetext', this.isLive && !this.online ? '设备未连接' : unknownTarget ? '当前模式没有设定温度' : `${state.temp} 摄氏度`);
+      this.renderClimate();
+      this.airflow.sync();
+      this.previousState = state;
+    }
+
+    renderClimate() {
+      const { temperature, humidity } = this.climate;
+      const { room, moisture, climate: reading } = this.elements;
+      room.textContent = `${temperature}°`;
+      moisture.textContent = `${humidity}%`;
+      room.parentElement.hidden = !Number.isFinite(temperature);
+      moisture.parentElement.hidden = !Number.isFinite(humidity);
+      reading.hidden = !Number.isFinite(temperature) && !Number.isFinite(humidity);
+      reading.setAttribute('aria-label', [Number.isFinite(temperature) ? `室温 ${temperature} 摄氏度` : '', Number.isFinite(humidity) ? `湿度 ${humidity}%` : ''].filter(Boolean).join('，') || '温湿度不可用');
+    }
+
+    destroy() {
+      if (this.destroyed) return;
+      this.destroyed = true;
+      this.events.abort();
+      this.dial.cancelDrag();
+      this.airflow.dispose();
+      this.timer.dispose();
+    }
+  }
+
+  const app = new AirConditionerApp();
+  // 调试读取返回快照，不能绕过输入验证直接修改内部状态。
+  window.__ac = Object.freeze({
+    get S() { return Object.freeze({ ...app.state }); },
+    setTemp: temp => app.update({ temp }),
+    setMode: mode => app.update({ mode, power: true }),
+    setPower: power => app.update({ power }),
+    setSpeed: speed => app.update({ speed }),
+    setDirection: direction => app.update({ direction }),
+    state: () => ({ ...app.state }),
+    timer: () => app.timer ? { timer: app.timer.timer, open: app.timer.open } : null,
+    airflow: () => app.airflow.inspect()
+  });
+})();
+</script>
+</body>
+</html>
