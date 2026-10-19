@@ -76,8 +76,12 @@
             <button class="timer-chip" type="button" data-minutes="480">8 小时</button>
           </div>
           <div class="timer-row timer-clock" id="timerClock" hidden>
-            <label for="timerTime">到点时刻</label>
-            <input type="time" id="timerTime" step="60">
+            <span class="timer-clock-label">到点时刻</span>
+            <button class="timer-time" id="timerTimeButton" type="button" aria-haspopup="dialog" aria-expanded="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6v4.9l3.1 1.9"/></svg>
+              <span id="timerTimeValue">16:46</span>
+            </button>
+            <span class="timer-day" id="timerDay">今天</span>
           </div>
           <div class="timer-row timer-actions">
             <button class="timer-start" id="timerStart" type="button">开始定时</button>
@@ -86,6 +90,20 @@
           <p class="timer-hint" id="timerHint">到点由本机服务执行，程序保持运行即可（可最小化或悬浮）。</p>
         </div>
         <span class="sr-only" id="timerAnnounce" role="status" aria-live="polite"></span>
+        <div class="timer-time-popover" id="timerTimePopover" hidden role="dialog" aria-label="选择到点时刻">
+          <div class="timer-time-popover-head">
+            <span>到点时刻</span>
+            <span class="timer-day" id="timerPopoverDay">今天</span>
+          </div>
+          <div class="timer-wheels">
+            <div class="timer-wheel" id="timerHourWheel" role="listbox" aria-label="小时" tabindex="0"></div>
+            <span class="timer-colon" aria-hidden="true">:</span>
+            <div class="timer-wheel" id="timerMinuteWheel" role="listbox" aria-label="分钟" tabindex="0"></div>
+          </div>
+          <div class="timer-time-popover-actions">
+            <button class="timer-time-done" id="timerTimeDone" type="button">完成</button>
+          </div>
+        </div>
         <button class="timer-handle" id="timerHandle" type="button" aria-expanded="false" aria-controls="timerPanel">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6v4.9l3.1 1.9"/></svg>
           <span class="timer-label">定时</span>

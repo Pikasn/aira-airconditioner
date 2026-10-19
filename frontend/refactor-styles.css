@@ -166,8 +166,27 @@ body.freeze *,body.freeze *::before,body.freeze *::after{animation:none!importan
 .timer-chip{border:1px solid #e2ecef;background:#fff;color:#6f8792;font-size:12px;padding:6px 12px;border-radius:12px;cursor:pointer;transition:border-color .2s,color .2s,background .2s}
 .timer-chip:hover{color:var(--accent)}
 .timer-chip.is-active{border-color:color-mix(in srgb,var(--accent) 42%,#fff);background:color-mix(in srgb,var(--accent) 10%,#fff);color:var(--accent);font-weight:600}
-.timer-clock label{font-size:12px;color:#6f8792}
-#timerTime{border:1px solid #dbe7ea;border-radius:10px;padding:6px 10px;font:inherit;font-size:12px;color:#3d5560;background:#fff;color-scheme:light}
+.timer-clock-label{font-size:12px;color:#6f8792}
+.timer-time{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border:1px solid #dbe7ea;border-radius:12px;background:#fff;color:#3d5560;font:600 13px/1 var(--font-num);font-variant-numeric:tabular-nums;transition:border-color .2s,color .2s,box-shadow .2s}
+.timer-time:hover{border-color:color-mix(in srgb,var(--accent) 40%,#fff);color:var(--accent);box-shadow:0 6px 16px -12px #3d5a68}
+.timer-time svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.timer-day{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:12px;background:color-mix(in srgb,var(--accent) 9%,#fff);color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.02em}
+
+/* 时间滚轮：在面板上方浮出，不改变面板布局 */
+.timer-time-popover{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);width:252px;padding:12px;border:1px solid #fff;border-radius:20px;background:#fffffff2;box-shadow:0 24px 60px -34px #2f4a56;backdrop-filter:blur(16px);display:grid;gap:10px;z-index:8;pointer-events:auto;animation:timer-in .2s var(--ease)}
+.timer-time-popover-head{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;color:#3d5560}
+.timer-wheels{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;height:96px}
+.timer-wheels::before{content:"";position:absolute;left:10px;right:10px;top:50%;height:32px;transform:translateY(-50%);border-radius:10px;background:color-mix(in srgb,var(--accent) 10%,#fff);pointer-events:none}
+.timer-wheel{position:relative;z-index:1;width:58px;height:96px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;mask-image:linear-gradient(to bottom,transparent,#000 26%,#000 74%,transparent);-webkit-mask-image:linear-gradient(to bottom,transparent,#000 26%,#000 74%,transparent);overscroll-behavior:contain;outline:none}
+.timer-wheel::-webkit-scrollbar{display:none}
+.timer-wheel-spacer{height:32px}
+.timer-wheel-item{display:block;width:100%;height:32px;padding:0;border:0;background:none;color:#93a7b1;font:500 13px/32px var(--font-num);font-variant-numeric:tabular-nums;text-align:center;scroll-snap-align:center;cursor:pointer;border-radius:8px;transition:color .15s}
+.timer-wheel-item:hover{color:#5f7885}
+.timer-wheel-item.is-selected{color:var(--accent);font-weight:700;font-size:15px}
+.timer-colon{position:relative;z-index:1;color:#a5b7bf;font:600 15px var(--font-num)}
+.timer-time-popover-actions{display:flex;justify-content:flex-end}
+.timer-time-done{border-radius:10px;padding:6px 16px;background:color-mix(in srgb,var(--accent) 10%,#fff);color:var(--accent);font-size:12px;font-weight:600;transition:background .2s,color .2s}
+.timer-time-done:hover{background:var(--accent);color:#fff}
 .timer-actions{justify-content:flex-end;gap:8px}
 .timer-start{border-radius:12px;padding:9px 22px;background:var(--accent);color:#fff;font-size:12px;font-weight:600;box-shadow:0 8px 18px -12px var(--accent);transition:filter .2s,opacity .2s}
 .timer-start:hover{filter:brightness(1.05)}
